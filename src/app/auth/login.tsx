@@ -1,15 +1,16 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
+  StyleSheet,
+  Text, TextInput, TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
-import { formatCpf, cleanCpf } from '../../utils/formatCpf';
+import { cleanCpf, formatCpf } from '../../utils/formatCpf';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, candidate } = useAuthStore();
 
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
@@ -30,6 +31,14 @@ export default function LoginScreen() {
 
     try {
       await login({ cpf: cleanCpf(cpf), password });
+
+      const user = useAuthStore.getState().candidate;
+
+      if (!user?.profileCompleted) {
+        router.replace('/(onboarding)');
+        return;
+      }
+
       router.replace('/(app)/home');
     } catch (error: any) {
       Alert.alert('Erro', error.message);
