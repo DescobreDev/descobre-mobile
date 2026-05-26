@@ -10,7 +10,7 @@ import { cleanCpf, formatCpf } from '../../utils/formatCpf';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, isLoading, candidate } = useAuthStore();
+  const { login, isLoading } = useAuthStore();
 
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
@@ -33,6 +33,7 @@ export default function LoginScreen() {
       await login({ cpf: cleanCpf(cpf), password });
 
       const user = useAuthStore.getState().candidate;
+      console.log('candidate após login:', user);
 
       if (!user?.profileCompleted) {
         router.replace('/(onboarding)');
