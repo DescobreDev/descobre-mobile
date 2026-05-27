@@ -29,6 +29,7 @@ export default function LoginScreen() {
     try {
       await login({ cpf: cleanCpf(cpf), password });
       const user = useAuthStore.getState().candidate;
+      console.log('candidate após login:', user);
 
       console.log(user);
       if (!user?.profileCompleted) {
