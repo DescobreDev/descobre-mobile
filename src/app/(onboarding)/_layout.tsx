@@ -23,10 +23,11 @@ export default function OnboardingLayout() {
     >
       <Stack.Screen name="step1-disc" />
       <Stack.Screen name="step2-interests" />
-      <Stack.Screen name="step3-education" />
-      <Stack.Screen name="step4-experience" />
-      <Stack.Screen name="step5-skills" />
-      <Stack.Screen name="step6-avatar" />
+      <Stack.Screen name="step3-priority" />
+      <Stack.Screen name="step4-education" />
+      <Stack.Screen name="step5-experience" />
+      <Stack.Screen name="step6-skills" />
+      <Stack.Screen name="step7-avatar" />
     </Stack>
   );
 }

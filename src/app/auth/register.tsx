@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   View,
+  Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
@@ -72,6 +73,14 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.scroll}>
+
+        <View>
+          <Image
+            source={require('../../../assets/images/LOGO-DESCOBRE.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
         <View style={styles.badge}>
           <View style={styles.badgeDot} />
@@ -359,5 +368,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: ORANGE,
     fontFamily: 'Poppins_700Bold',
+  },
+
+  logo: {
+    width: 400,
+    height: 150,
+    transform: [{ scale: 2.5 }],
   },
 });

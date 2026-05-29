@@ -21,6 +21,7 @@ export interface OnboardingEducation {
 export interface OnboardingExperience {
   company: string;
   position: string;
+  salary?: string;
   startDate: string;
   endDate: string | null;
   current: boolean;
@@ -92,7 +93,7 @@ const initialData: OnboardingData = {
 
 export const useOnboardingStore = create<OnboardingState>((set) => ({
   currentStep: 1,
-  totalSteps: 6,
+  totalSteps: 7,
   data: initialData,
 
   nextStep: () =>

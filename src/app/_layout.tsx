@@ -23,6 +23,7 @@ export default function RootLayout() {
     Poppins_700Bold,
   });
 
+  
   useEffect(() => {
     loadFromStorage();
   }, []);

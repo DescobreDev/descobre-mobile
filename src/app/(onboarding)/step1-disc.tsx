@@ -16,7 +16,7 @@ const DISC_PROFILES = [
     key: 'executor',
     label: 'Executor',
     icon: 'flash-outline' as const,
-    color: '#ef4444',      // vermelho
+    color: '#ef4444',
     colorLight: '#fef2f2',
     description: 'Age com rapidez, foco em resultados e assume desafios.',
   },
@@ -24,7 +24,7 @@ const DISC_PROFILES = [
     key: 'comunicador',
     label: 'Comunicador',
     icon: 'chatbubbles-outline' as const,
-    color: '#f97316',      // laranja
+    color: '#f97316',
     colorLight: '#fff7ed',
     description: 'Inspira pessoas, colaborativo e entusiasta.',
   },
@@ -32,7 +32,7 @@ const DISC_PROFILES = [
     key: 'planejador',
     label: 'Planejador',
     icon: 'shield-checkmark-outline' as const,
-    color: '#10b981',      // verde
+    color: '#10b981',
     colorLight: '#ecfdf5',
     description: 'Estável, paciente e focado em harmonia e consistência.',
   },
@@ -40,7 +40,7 @@ const DISC_PROFILES = [
     key: 'analista',
     label: 'Analista',
     icon: 'analytics-outline' as const,
-    color: '#6366f1',      // índigo
+    color: '#6366f1',
     colorLight: '#eef2ff',
     description: 'Preciso, detalhista e orientado a dados e qualidade.',
   },
@@ -69,18 +69,15 @@ export default function Step1Disc() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* Badge de status */}
         <View style={styles.devBadge}>
           <Ionicons name="construct-outline" size={15} color={COLORS.indigo} />
           <Text style={styles.devBadgeText}>Em breve — Teste completo disponível em breve</Text>
         </View>
 
-        {/* Descrição */}
         <Text style={styles.intro}>
           O <Text style={styles.highlight}>Teste DISC</Text> identifica seu estilo predominante de comportamento. Você terá dois perfis — um principal (visível para as empresas) e um secundário (para você se conhecer melhor).
         </Text>
 
-        {/* Cards dos perfis */}
         <Text style={styles.sectionLabel}>Os 4 perfis</Text>
         <View style={styles.cardsGrid}>
           {DISC_PROFILES.map((profile) => (
@@ -101,7 +98,6 @@ export default function Step1Disc() {
           ))}
         </View>
 
-        {/* Info extra */}
         <View style={styles.infoBox}>
           <Ionicons name="information-circle-outline" size={18} color={COLORS.text2} />
           <Text style={styles.infoText}>
@@ -110,7 +106,6 @@ export default function Step1Disc() {
         </View>
       </ScrollView>
 
-      {/* Rodapé com botão */}
       <View style={styles.footer}>
         <PrimaryButton label="Continuar" onPress={handleAdvance} />
       </View>

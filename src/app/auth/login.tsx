@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, View,
+  ActivityIndicator, Alert, View, Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
@@ -47,6 +47,14 @@ export default function LoginScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.scroll}>
+
+        <View>
+          <Image
+            source={require('../../../assets/images/LOGO-DESCOBRE.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
         <View style={styles.badge}>
           <View style={styles.badgeDot} />
@@ -203,4 +211,10 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 24 },
   footerText: { fontSize: 13, color: TEXT_MUTED, fontFamily: 'Poppins_400Regular' },
   footerLink: { fontSize: 13, color: ORANGE, fontFamily: 'Poppins_700Bold' },
+
+  logo: {
+    width: 400,
+    height: 150,
+    transform: [{ scale: 2.5 }],
+  },
 });

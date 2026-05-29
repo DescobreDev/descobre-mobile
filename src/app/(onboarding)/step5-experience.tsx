@@ -1,8 +1,3 @@
-// - Opção "Em busca do primeiro emprego" desabilita o formulário
-// - Primeira experiência é pedida por padrão
-// - Experiências adicionais são opcionais (botão "Adicionar mais")
-// - Cada card pode ser expandido para edição e removido
-
 import React, { useState } from 'react';
 import {
   View,
@@ -31,6 +26,7 @@ function emptyExperience(): OnboardingExperience {
   return {
     company: '',
     position: '',
+    salary: '',
     startDate: '',
     endDate: null,
     current: false,
@@ -50,18 +46,8 @@ function toIsoDate(display: string): string {
   return `${parts[1]}-${parts[0]}`;
 }
 
-function isValidMonthYear(value: string): boolean {
-  const regex = /^(0[1-9]|1[0-2])\/\d{4}$/;
-  return regex.test(value);
-}
-
 function isExperienceValid(exp: OnboardingExperience): boolean {
-  return (
-    exp.company.trim().length > 0 &&
-    exp.position.trim().length > 0 &&
-    isValidMonthYear(exp.startDate) &&
-    (exp.current || isValidMonthYear(exp.endDate ?? ''))
-  );
+  return exp.company.trim().length > 0;
 }
 
 interface ExperienceCardProps {
@@ -87,7 +73,6 @@ function ExperienceCard({
 
   return (
     <View style={[styles.card, expanded && styles.cardExpanded]}>
-      {/* Cabeçalho do card */}
       <TouchableOpacity
         onPress={onToggle}
         style={styles.cardHeader}
@@ -130,29 +115,42 @@ function ExperienceCard({
         </View>
       </TouchableOpacity>
 
-      {/* Formulário expansível */}
       {expanded && (
         <View style={styles.cardBody}>
           <View style={styles.divider} />
 
           <Field
-            label="Empresa *"
+            label="Empresa"
+            required
             placeholder="Nome da empresa"
             value={exp.company}
             onChangeText={(v) => onChange({ ...exp, company: v })}
           />
+
           <Field
-            label="Cargo *"
+            label="Cargo"
             placeholder="Ex: Analista de Dados"
             value={exp.position}
+            optional="true"
             onChangeText={(v) => onChange({ ...exp, position: v })}
+          />
+
+          <Field
+            label="Salário"
+            placeholder="Ex: R$ 2.500,00"
+            optional="true"
+            value={(exp as any).salary ?? ''}
+            onChangeText={(v) =>
+              onChange({ ...exp, salary: v } as any)
+            }
           />
 
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
               <Field
-                label="Início *"
+                label="Início"
                 placeholder="MM/AAAA"
+                optional="true"
                 value={exp.startDate}
                 onChangeText={(v) =>
                   onChange({ ...exp, startDate: formatMonthYear(v) })
@@ -164,8 +162,9 @@ function ExperienceCard({
             {!exp.current && (
               <View style={{ flex: 1 }}>
                 <Field
-                  label="Término *"
+                  label="Término"
                   placeholder="MM/AAAA"
+                  optional="true"
                   value={exp.endDate ?? ''}
                   onChangeText={(v) =>
                     onChange({ ...exp, endDate: formatMonthYear(v) })
@@ -177,7 +176,6 @@ function ExperienceCard({
             )}
           </View>
 
-          {/* Toggle emprego atual */}
           <View style={styles.switchRow}>
             <Text style={styles.switchLabel}>Emprego atual</Text>
             <Switch
@@ -190,7 +188,6 @@ function ExperienceCard({
             />
           </View>
 
-          {/* Descrição opcional */}
           <View style={styles.fieldBlock}>
             <Text style={styles.fieldLabel}>
               Descrição{' '}
@@ -213,21 +210,39 @@ function ExperienceCard({
   );
 }
 
-// ─── CAMPO GENÉRICO ───────────────────────────────────────────────────────────
-
 interface FieldProps {
   label: string;
   placeholder: string;
   value: string;
   onChangeText: (v: string) => void;
+  required?: boolean;
+  optional?: boolean;
   keyboardType?: 'default' | 'number-pad';
   maxLength?: number;
 }
 
-function Field({ label, placeholder, value, onChangeText, keyboardType = 'default', maxLength }: FieldProps) {
+function Field({
+  label,
+  placeholder,
+  value,
+  onChangeText,
+  required = false,
+  optional = false,
+  keyboardType = 'default',
+  maxLength,
+}: FieldProps) {
   return (
     <View style={styles.fieldBlock}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <Text style={styles.fieldLabel}>
+        {label}
+        {required && (
+          <Text style={{ color: COLORS.red }}> *</Text>
+        )}
+        {optional && (
+          <Text style={styles.fieldOptional}>  (opcional)</Text>
+        )}
+      </Text>
+
       <TextInput
         style={styles.input}
         placeholder={placeholder}
@@ -241,8 +256,6 @@ function Field({ label, placeholder, value, onChangeText, keyboardType = 'defaul
     </View>
   );
 }
-
-// ─── TELA PRINCIPAL ───────────────────────────────────────────────────────────
 
 export default function Step4Experience() {
   const router = useRouter();
@@ -288,23 +301,20 @@ export default function Step4Experience() {
     ]);
   };
 
-  // Primeiro emprego: sempre pode avançar
-  // Com experiências: pelo menos a primeira deve ser válida
   const firstExpValid = firstJobSeeker || isExperienceValid(experiences[0]);
 
   const handleNext = () => {
     setFirstJobSeeker(firstJobSeeker);
-    // Salva apenas as válidas (as adicionais incompletas são ignoradas)
     const validExps = firstJobSeeker
       ? []
       : experiences.filter(isExperienceValid).map((exp) => ({
-          ...exp,
-          startDate: toIsoDate(exp.startDate),
-          endDate: exp.endDate ? toIsoDate(exp.endDate) : null,
-        }));
+        ...exp,
+        startDate: toIsoDate(exp.startDate),
+        endDate: exp.endDate ? toIsoDate(exp.endDate) : null,
+      }));
     setExperiences(validExps);
     nextStep();
-    router.push('/(onboarding)/step5-skills');
+    router.push('/(onboarding)/step6-skills');
   };
 
   const handleBack = () => {
@@ -327,7 +337,7 @@ export default function Step4Experience() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        
+
         <TouchableOpacity
           onPress={() => toggleFirstJob(!firstJobSeeker)}
           style={[styles.firstJobToggle, firstJobSeeker && styles.firstJobToggleActive]}
@@ -349,7 +359,6 @@ export default function Step4Experience() {
           </View>
         </TouchableOpacity>
 
-        {/* Cards de experiência */}
         {!firstJobSeeker && (
           <View style={styles.experiencesBlock}>
             {experiences.map((exp, i) => (
@@ -365,7 +374,6 @@ export default function Step4Experience() {
               />
             ))}
 
-            {/* Botão adicionar */}
             <TouchableOpacity
               onPress={addExperience}
               style={styles.addBtn}
@@ -381,7 +389,7 @@ export default function Step4Experience() {
       <View style={styles.footer}>
         {!firstExpValid && (
           <Text style={styles.footerHint}>
-            Preencha empresa, cargo e período da primeira experiência
+            Informe ao menos o nome da empresa
           </Text>
         )}
         <PrimaryButton
@@ -394,12 +402,10 @@ export default function Step4Experience() {
   );
 }
 
-// ─── ESTILOS ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.surface },
   scroll: { paddingHorizontal: SPACING.md, paddingBottom: SPACING.xl },
 
-  // Toggle primeiro emprego
   firstJobToggle: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -449,7 +455,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.orange,
   },
 
-  // Cards
   experiencesBlock: { gap: 10 },
   card: {
     borderWidth: 1.5,
@@ -508,7 +513,6 @@ const styles = StyleSheet.create({
   },
   cardBody: { padding: SPACING.md, gap: SPACING.sm },
 
-  // Campos
   row: { flexDirection: 'row', gap: SPACING.sm },
   fieldBlock: { gap: 4 },
   fieldLabel: {
@@ -548,7 +552,6 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
 
-  // Botão adicionar
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -567,7 +570,6 @@ const styles = StyleSheet.create({
     color: COLORS.orange,
   },
 
-  // Rodapé
   footer: {
     padding: SPACING.md,
     paddingBottom: SPACING.lg,

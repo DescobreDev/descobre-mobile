@@ -20,6 +20,8 @@ import { PrimaryButton } from '../../components/onboarding/PrimaryButton';
 import { useOnboardingStore } from '../../store/onBoardingStore';
 
 const EDUCATION_LEVELS = [
+  { value: 'NAO_ALFABETIZADO', label: 'Não\nAlfabetizado', icon: 'reader-outline' as const },
+  { value: 'SEM_ESCOLARIDADE', label: 'Sem\nEscolaridade', icon: 'document-outline' as const },
   { value: 'FUNDAMENTAL', label: 'Ensino\nFundamental', icon: 'school-outline' as const },
   { value: 'MEDIO', label: 'Ensino\nMédio', icon: 'library-outline' as const },
   { value: 'TECNICO', label: 'Técnico', icon: 'construct-outline' as const },
@@ -27,6 +29,11 @@ const EDUCATION_LEVELS = [
   { value: 'POS_GRADUACAO', label: 'Pós-\nGraduação', icon: 'ribbon-outline' as const },
   { value: 'MESTRADO', label: 'Mestrado', icon: 'flask-outline' as const },
   { value: 'DOUTORADO', label: 'Doutorado', icon: 'planet-outline' as const },
+] as const;
+
+const HIDE_INSTITUTION_LEVELS = [
+  'NAO_ALFABETIZADO',
+  'SEM_ESCOLARIDADE',
 ] as const;
 
 type EducationLevelValue = typeof EDUCATION_LEVELS[number]['value'];
@@ -44,6 +51,13 @@ export default function Step3Education() {
   const [selectedLevel, setSelectedLevel] = useState<EducationLevelValue | null>(
     (data.education?.level as EducationLevelValue) ?? null
   );
+
+  const shouldShowInstitution =
+    selectedLevel &&
+    !HIDE_INSTITUTION_LEVELS.includes(
+      selectedLevel as (typeof HIDE_INSTITUTION_LEVELS)[number]
+    );
+
   const [institution, setInstitution] = useState(data.education?.institution ?? '');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -52,11 +66,16 @@ export default function Step3Education() {
   const handleNext = () => {
     setEducation(
       selectedLevel
-        ? { level: selectedLevel, institution: institution.trim() }
+        ? {
+          level: selectedLevel,
+          institution: shouldShowInstitution
+            ? institution.trim()
+            : '',
+        }
         : null
     );
     nextStep();
-    router.push('/(onboarding)/step4-experience');
+    router.push('/(onboarding)/step5-experience');
   };
 
   const handleBack = () => {
@@ -84,7 +103,7 @@ export default function Step3Education() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* ── GRID DE NÍVEIS ─────────────────────────────────────────────── */}
+
         <View style={styles.levelsGrid}>
           {EDUCATION_LEVELS.map((lvl) => {
             const active = selectedLevel === lvl.value;
@@ -117,8 +136,7 @@ export default function Step3Education() {
           })}
         </View>
 
-        {/* ── CAMPO INSTITUIÇÃO ──────────────────────────────────────────── */}
-        {selectedLevel && (
+        {shouldShowInstitution && (
           <View style={styles.institutionBlock}>
             <Text style={styles.institutionLabel}>
               Instituição{' '}
@@ -149,7 +167,6 @@ export default function Step3Education() {
               )}
             </View>
 
-            {/* Sugestões rápidas */}
             {showSuggestions && institution.length === 0 && (
               <View style={styles.suggestionsBox}>
                 <Text style={styles.suggestionsTitle}>Sugestões</Text>
@@ -168,9 +185,9 @@ export default function Step3Education() {
             )}
           </View>
         )}
+
       </ScrollView>
 
-      {/* ── RODAPÉ ─────────────────────────────────────────────────────────── */}
       <View style={styles.footer}>
         {!canAdvance && (
           <Text style={styles.footerHint}>Selecione seu nível de formação</Text>
@@ -185,7 +202,6 @@ export default function Step3Education() {
   );
 }
 
-// ─── ESTILOS ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.surface },
 
@@ -194,15 +210,12 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.xl,
   },
 
-  // Grid de níveis — 3 colunas
   levelsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: SPACING.xl,
   },
   levelCard: {
-    // 3 colunas com gap de 10 em padding 16 cada lado: (width - 32 - 20) / 3
     width: '30.5%',
     aspectRatio: 0.92,
     borderRadius: 14,
@@ -211,7 +224,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: SPACING.xs,
+    gap: SPACING.md,
     padding: SPACING.sm,
     position: 'relative',
   },
@@ -253,8 +266,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Instituição
-  institutionBlock: { gap: SPACING.sm },
+  institutionBlock: { gap: SPACING.sm},
   institutionLabel: {
     fontFamily: FONT.semiBold,
     fontSize: 15,
@@ -284,7 +296,6 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
 
-  // Sugestões
   suggestionsBox: {
     backgroundColor: COLORS.surface2,
     borderRadius: 12,
