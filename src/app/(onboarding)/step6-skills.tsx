@@ -109,7 +109,7 @@ function LanguageRow({ lang, index, usedLanguages, onChange, onRemove, zIndex }:
       <View style={styles.langDropdowns}>
         <Dropdown
           value={lang.language}
-          placeholder="Selecione o idioma"
+          placeholder="Selecione."
           options={availableLangs.map((l) => ({ value: l, label: l }))}
           onSelect={(v) => onChange(index, { ...lang, language: v })}
           zIndex={zIndex + 10}

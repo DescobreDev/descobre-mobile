@@ -9,7 +9,7 @@ export default function OnboardingLayout() {
 
   useEffect(() => {
     if (candidate?.profileCompleted) {
-        router.replace('/(app)/home');
+      router.replace('/(app)/home');
     }
   }, [candidate]);
 
@@ -28,6 +28,10 @@ export default function OnboardingLayout() {
       <Stack.Screen name="step5-experience" />
       <Stack.Screen name="step6-skills" />
       <Stack.Screen name="step7-avatar" />
+      <Stack.Screen
+        name="onboarding-complete"
+        options={{ animation: 'fade', gestureEnabled: false }}
+      />
     </Stack>
   );
 }

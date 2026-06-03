@@ -110,7 +110,6 @@ export default function Step6Avatar() {
     setSaving(true);
     try {
       setAvatar(selectedAvatar, photoUri);
-
       const store = useOnboardingStore.getState();
       const { d } = { d: store.data };
 
@@ -130,7 +129,7 @@ export default function Step6Avatar() {
         avatarUrl: photoUri,
       });
 
-      router.replace('/(app)/home');
+      router.replace('/(onboarding)/onboarding-complete');
     } catch (err: any) {
       Alert.alert(
         'Erro ao salvar',
@@ -246,6 +245,15 @@ export default function Step6Avatar() {
             ))}
           </View>
         </View>
+
+        {photoUri && photoUri.startsWith('file') && (
+          <View style={styles.infoBox}>
+            <Ionicons name="cloud-upload-outline" size={16} color={COLORS.text2} />
+            <Text style={styles.infoText}>
+              Seu upload será sincronizado quando o storage estiver configurado no backend.
+            </Text>
+          </View>
+        )}
       </ScrollView>
 
       <View style={styles.footer}>
