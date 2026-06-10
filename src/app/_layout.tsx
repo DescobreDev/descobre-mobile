@@ -1,7 +1,5 @@
 import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
-import { useAuthStore } from '../store/authStore';
-
 import { useFonts } from 'expo-font';
 import {
   Poppins_400Regular,
@@ -10,12 +8,12 @@ import {
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
 
-export default function RootLayout() {
-  const { token, loadFromStorage } = useAuthStore();
+import { useAuthStore } from '../store/authStore';
 
+export default function RootLayout() {
+  const { token, candidate, loadFromStorage } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
-
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -23,26 +21,35 @@ export default function RootLayout() {
     Poppins_700Bold,
   });
 
-  
   useEffect(() => {
     loadFromStorage();
   }, []);
 
   useEffect(() => {
-    if (token === null) return;
+    if (!fontsLoaded || token === null) return;
 
-    const inAuth = segments[0] === 'auth';
+    const inAuth       = segments[0] === 'auth';
+    const inOnboarding = segments[0] === '(onboarding)';
 
-    if (!token && !inAuth) {
-      router.replace('/auth/login');
-    } else if (token && inAuth) {
-      router.replace('/');
+    const isAuthenticated = !!token;
+    const needsOnboarding = isAuthenticated && candidate?.profileCompleted === false;
+
+    if (!isAuthenticated) {
+      if (!inAuth) router.replace('/auth/login');
+      return;
     }
-  }, [token, segments]);
 
-  if (!fontsLoaded) {
-    return null;
-  }
+    if (needsOnboarding) {
+      if (!inOnboarding) router.replace('/(onboarding)/step1-disc');
+      return;
+    }
+
+    if (inAuth || inOnboarding) {
+      router.replace('/(app)/home');
+    }
+  }, [fontsLoaded, token, candidate?.profileCompleted, segments]);
+
+  if (!fontsLoaded || token === null) return null;
 
   return <Slot />;
 }

@@ -15,20 +15,34 @@ interface AuthState {
   candidate: Candidate | null;
   token: string | null;
   isLoading: boolean;
+
+  loadFromStorage: () => Promise<void>;
   register: (data: { cpf: string; password: string }) => Promise<{ name: string }>;
   login: (data: { cpf: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
-  loadFromStorage: () => Promise<void>;
+  setProfileCompleted: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   candidate: null,
   token: null,
   isLoading: false,
 
   loadFromStorage: async () => {
     const token = await SecureStore.getItemAsync('candidate_token');
-    set({ token: token ?? '' });
+
+    if (!token) {
+      set({ token: '' });
+      return;
+    }
+
+    try {
+      const { data } = await api.get(ENDPOINTS.candidates.me);
+      set({ token, candidate: data });
+    } catch {
+      await SecureStore.deleteItemAsync('candidate_token');
+      set({ token: '', candidate: null });
+    }
   },
 
   register: async (data) => {
@@ -56,5 +70,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await SecureStore.deleteItemAsync('candidate_token');
     set({ candidate: null, token: '' });
+  },
+
+  setProfileCompleted: () => {
+    const { candidate } = get();
+    if (!candidate) return;
+    set({ candidate: { ...candidate, profileCompleted: true } });
   },
 }));

@@ -33,7 +33,7 @@ const EDUCATION_LEVELS = [
 
 const HIDE_INSTITUTION_LEVELS = [
   'NAO_ALFABETIZADO',
-  'SEM_ESCOLARIDADE',
+  'NAO_ESCOLARIZADO',
 ] as const;
 
 type EducationLevelValue = typeof EDUCATION_LEVELS[number]['value'];

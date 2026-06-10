@@ -108,10 +108,28 @@ export default function Step6Avatar() {
 
   const handleFinish = async () => {
     setSaving(true);
+
     try {
       setAvatar(selectedAvatar, photoUri);
+
       const store = useOnboardingStore.getState();
-      const { d } = { d: store.data };
+
+      console.log('=== PAYLOAD EXPERIENCES ===');
+      console.log(JSON.stringify(store.data.experiences, null, 2));
+
+      console.log('=== PAYLOAD COMPLETO ===');
+      console.log(JSON.stringify({
+        discCompleted: store.data.discCompleted,
+        interestIds: store.data.interestIds,
+        priorities: store.data.priorityIds,
+        education: store.data.education,
+        firstJobSeeker: store.data.firstJobSeeker,
+        experiences: store.data.experiences,
+        skills: store.data.skills,
+        languages: store.data.languages,
+        avatarIndex: selectedAvatar,
+        avatarUrl: photoUri,
+      }, null, 2));
 
       await api.post(ENDPOINTS.onboarding.complete, {
         discCompleted: store.data.discCompleted,
@@ -131,10 +149,7 @@ export default function Step6Avatar() {
 
       router.replace('/(onboarding)/onboarding-complete');
     } catch (err: any) {
-      Alert.alert(
-        'Erro ao salvar',
-        err?.response?.data?.message ?? 'Tente novamente.'
-      );
+      console.log('Erro ao concluir onboarding:', err);
     } finally {
       setSaving(false);
     }
@@ -245,15 +260,6 @@ export default function Step6Avatar() {
             ))}
           </View>
         </View>
-
-        {photoUri && photoUri.startsWith('file') && (
-          <View style={styles.infoBox}>
-            <Ionicons name="cloud-upload-outline" size={16} color={COLORS.text2} />
-            <Text style={styles.infoText}>
-              Seu upload será sincronizado quando o storage estiver configurado no backend.
-            </Text>
-          </View>
-        )}
       </ScrollView>
 
       <View style={styles.footer}>

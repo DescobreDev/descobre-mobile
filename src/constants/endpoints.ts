@@ -1,17 +1,23 @@
 export const ENDPOINTS = {
   auth: {
     register: '/candidate/auth/register',
-    login: '/candidate/auth/login',
+    login:    '/candidate/auth/login',
   },
 
   onboarding: {
-    interests: '/onboarding/interests',
+    interests:  '/onboarding/interests',
     priorities: '/onboarding/priorities',
-    complete: '/onboarding/complete',
+    complete:   '/onboarding/complete',
   },
 
   candidates: {
+    me:           '/candidates/me',
     uploadAvatar: '/candidates/avatar',
-    me: '/candidates/me',
+  },
+
+  jobs: {
+    list:   '/candidate/jobs',
+    detail: (id: number) => `/candidate/jobs/${id}`,
+    apply:  (id: number) => `/candidate/jobs/${id}/apply`,
   },
 };

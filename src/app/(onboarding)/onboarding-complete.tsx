@@ -16,7 +16,6 @@ import { useOnboardingStore } from '../../store/onBoardingStore';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// ─── CORES ────────────────────────────────────────────────────────────────────
 const COLORS = {
   orange: '#f97316',
   orangeDark: '#ea580c',
@@ -35,7 +34,6 @@ const FONT = {
   bold: 'Poppins_700Bold',
 };
 
-// ─── PARTÍCULA DE CONFETTI ────────────────────────────────────────────────────
 const CONFETTI_COLORS = [
   '#f97316', '#10b981', '#6366f1', '#ec4899',
   '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6',
@@ -160,12 +158,10 @@ function Confetti() {
   );
 }
 
-// ─── TELA PRINCIPAL ───────────────────────────────────────────────────────────
 export default function OnboardingComplete() {
   const router = useRouter();
   const { reset } = useOnboardingStore();
 
-  // Animações
   const checkScale = useRef(new Animated.Value(0)).current;
   const checkOpacity = useRef(new Animated.Value(0)).current;
   const ringScale = useRef(new Animated.Value(0.6)).current;
@@ -180,9 +176,7 @@ export default function OnboardingComplete() {
   const btnOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Sequência de animação orquestrada
     Animated.sequence([
-      // 1. Anel pulsa
       Animated.parallel([
         Animated.spring(ringScale, {
           toValue: 1,
@@ -197,7 +191,6 @@ export default function OnboardingComplete() {
         }),
       ]),
 
-      // 2. Check aparece com bounce
       Animated.parallel([
         Animated.spring(checkScale, {
           toValue: 1,
@@ -212,7 +205,6 @@ export default function OnboardingComplete() {
         }),
       ]),
 
-      // 3. Título sobe
       Animated.parallel([
         Animated.spring(titleY, {
           toValue: 0,
@@ -227,7 +219,6 @@ export default function OnboardingComplete() {
         }),
       ]),
 
-      // 4. Subtítulo sobe
       Animated.parallel([
         Animated.spring(subtitleY, {
           toValue: 0,
@@ -242,7 +233,6 @@ export default function OnboardingComplete() {
         }),
       ]),
 
-      // 5. Pills de destaque
       Animated.parallel([
         Animated.spring(pillsY, {
           toValue: 0,
@@ -257,7 +247,6 @@ export default function OnboardingComplete() {
         }),
       ]),
 
-      // 6. Botão aparece por último
       Animated.parallel([
         Animated.spring(btnY, {
           toValue: 0,
@@ -275,8 +264,8 @@ export default function OnboardingComplete() {
   }, []);
 
   const handleGoHome = () => {
-    reset(); // limpa o store do onboarding
-    router.replace('/(app)/home');
+    reset();
+    router.replace('_layout');
   };
 
   const HIGHLIGHTS = [
@@ -290,7 +279,6 @@ export default function OnboardingComplete() {
       <Confetti />
 
       <View style={styles.content}>
-        {/* ── ÍCONE DE CHECK ──────────────────────────────────────────────── */}
         <Animated.View
           style={[
             styles.ringOuter,
@@ -325,7 +313,6 @@ export default function OnboardingComplete() {
           Perfil criado!
         </Animated.Text>
 
-        {/* ── SUBTÍTULO ───────────────────────────────────────────────────── */}
         <Animated.Text
           style={[
             styles.subtitle,
@@ -338,7 +325,6 @@ export default function OnboardingComplete() {
           Seu perfil está pronto. Agora você pode descobrir vagas feitas para você e dar o próximo passo na sua carreira.
         </Animated.Text>
 
-        {/* ── PILLS DO QUE O USUÁRIO DESBLOQUEOU ──────────────────────────── */}
         <Animated.View
           style={[
             styles.pillsRow,
@@ -357,7 +343,6 @@ export default function OnboardingComplete() {
         </Animated.View>
       </View>
 
-      {/* ── BOTÃO ───────────────────────────────────────────────────────────── */}
       <Animated.View
         style={[
           styles.footer,
