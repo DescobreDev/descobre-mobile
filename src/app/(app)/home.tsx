@@ -25,7 +25,7 @@ const FEATURED_CARD_WIDTH = SCREEN_WIDTH * 0.78;
 const C = {
   orange: '#f97316',
   orangeDark: '#ea580c',
-  orangeLight: '#fff7ed',
+  orangeLight: '#fff2e3',
   orangeBorder: 'rgba(249,115,22,0.25)',
   text: '#0d1829',
   text2: '#5a6a82',
@@ -255,8 +255,6 @@ export default function HomeScreen() {
     refresh,
   } = useJobs();
 
-  console.log('Jobs:', jobs);
-
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = useCallback(async () => {
@@ -479,21 +477,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'android' ? 16 : 8,
     paddingBottom: 12,
-    backgroundColor: C.surface,
+    backgroundColor: C.orange,
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
   headerGreeting: {
     fontFamily: F.bold,
-    fontSize: 18,
-    color: C.text,
+    fontSize: 24,
+    color: '#fff',
   },
   headerSub: {
     fontFamily: F.regular,
-    fontSize: 13,
-    color: C.text2,
+    fontSize: 15,
+    color: '#fff',
     marginTop: 1,
   },
+  
   avatarBtn: {
     width: 40,
     height: 40,
@@ -506,7 +505,7 @@ const styles = StyleSheet.create({
   },
   avatarBtnText: {
     fontFamily: F.bold,
-    fontSize: 16,
+    fontSize: 18,
     color: C.orange,
   },
 
@@ -520,8 +519,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 10,
-    backgroundColor: C.surface,
+    backgroundColor: C.orangeLight,
   },
+
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -540,12 +540,11 @@ const styles = StyleSheet.create({
     color: C.text,
   },
 
-  // Filtros
   filtersScroll: {
     paddingHorizontal: 16,
     paddingVertical: 10,
     gap: 8,
-    backgroundColor: C.surface,
+    backgroundColor: C.orangeLight,
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
@@ -563,7 +562,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontFamily: F.medium,
-    fontSize: 13,
+    fontSize: 15,
     color: C.text2,
   },
   filterChipTextActive: {
@@ -577,7 +576,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
 
-  // Seções
   featuredSection: {
     paddingTop: 20,
     backgroundColor: C.surface2,
@@ -592,21 +590,20 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: F.semiBold,
-    fontSize: 16,
+    fontSize: 20,
     color: C.text,
   },
   sectionLink: {
     fontFamily: F.medium,
-    fontSize: 13,
+    fontSize: 16,
     color: C.orange,
   },
   jobCount: {
     fontFamily: F.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: C.textMuted,
   },
 
-  // Featured cards
   featuredScroll: {
     paddingHorizontal: 16,
     paddingBottom: 20,
@@ -633,12 +630,12 @@ const styles = StyleSheet.create({
   },
   featuredCompany: {
     fontFamily: F.semiBold,
-    fontSize: 13,
+    fontSize: 16,
     color: C.text,
   },
   featuredLocation: {
     fontFamily: F.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: C.textMuted,
     marginTop: 1,
   },
@@ -647,7 +644,7 @@ const styles = StyleSheet.create({
   },
   featuredTitle: {
     fontFamily: F.bold,
-    fontSize: 16,
+    fontSize: 18,
     color: C.text,
     lineHeight: 22,
   },
@@ -663,16 +660,15 @@ const styles = StyleSheet.create({
   },
   featuredSalary: {
     fontFamily: F.semiBold,
-    fontSize: 14,
+    fontSize: 18,
     color: C.orange,
   },
   featuredTime: {
     fontFamily: F.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: C.textMuted,
   },
 
-  // Badge
   badge: {
     paddingHorizontal: 9,
     paddingVertical: 3,
@@ -680,10 +676,9 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: F.medium,
-    fontSize: 11,
+    fontSize: 13,
   },
 
-  // List item
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -702,12 +697,12 @@ const styles = StyleSheet.create({
   },
   listItemTitle: {
     fontFamily: F.semiBold,
-    fontSize: 14,
+    fontSize: 16,
     color: C.text,
   },
   listItemCompany: {
     fontFamily: F.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: C.text2,
   },
   listItemMeta: {
@@ -718,7 +713,7 @@ const styles = StyleSheet.create({
   },
   listItemSalary: {
     fontFamily: F.medium,
-    fontSize: 12,
+    fontSize: 14,
     color: C.orange,
   },
   listItemRight: {
@@ -727,11 +722,10 @@ const styles = StyleSheet.create({
   },
   listItemTime: {
     fontFamily: F.regular,
-    fontSize: 11,
+    fontSize: 12,
     color: C.textMuted,
   },
 
-  // Company avatar
   companyAvatar: {
     borderWidth: 1,
     alignItems: 'center',
@@ -741,7 +735,6 @@ const styles = StyleSheet.create({
     fontFamily: F.bold,
   },
 
-  // Estados
   emptyState: {
     alignItems: 'center',
     paddingVertical: 48,
@@ -750,13 +743,13 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontFamily: F.semiBold,
-    fontSize: 16,
+    fontSize: 18,
     color: C.text,
     marginTop: 8,
   },
   emptySub: {
     fontFamily: F.regular,
-    fontSize: 14,
+    fontSize: 16,
     color: C.text2,
     textAlign: 'center',
     lineHeight: 21,
@@ -772,7 +765,7 @@ const styles = StyleSheet.create({
   },
   clearFiltersBtnText: {
     fontFamily: F.semiBold,
-    fontSize: 13,
+    fontSize: 14,
     color: C.orangeDark,
   },
   errorState: {
@@ -784,13 +777,13 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontFamily: F.semiBold,
-    fontSize: 16,
+    fontSize: 18,
     color: C.text,
     marginTop: 8,
   },
   errorSub: {
     fontFamily: F.regular,
-    fontSize: 14,
+    fontSize: 16,
     color: C.text2,
     textAlign: 'center',
   },
@@ -803,24 +796,22 @@ const styles = StyleSheet.create({
   },
   retryBtnText: {
     fontFamily: F.semiBold,
-    fontSize: 14,
+    fontSize: 16,
     color: '#fff',
   },
 
-  // Load more / fim
   loadMoreSpinner: {
     paddingVertical: 20,
     alignItems: 'center',
   },
   endText: {
     fontFamily: F.regular,
-    fontSize: 13,
+    fontSize: 14,
     color: C.textMuted,
     textAlign: 'center',
     paddingVertical: 20,
   },
 
-  // Skeleton
   skeletonFeatured: {
     width: FEATURED_CARD_WIDTH,
     backgroundColor: C.surface,
@@ -848,4 +839,4 @@ const styles = StyleSheet.create({
     backgroundColor: C.border,
     borderRadius: 6,
   },
-});
+})
