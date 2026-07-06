@@ -67,6 +67,13 @@ export default function AppLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="job/[id]"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

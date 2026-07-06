@@ -1,15 +1,3 @@
-// app/(app)/job/[id].tsx
-// Detalhe da vaga — design refinado
-//
-// Decisões visuais:
-//   • Hero com fundo escuro (#0d1829) e gradiente laranja sutil
-//   • Tipografia agressiva: título 26px bold, hierarquia clara
-//   • Info pills compactos em linha horizontal (sem lista vertical)
-//   • Seções separadas por espaço + divider fino, sem cards com borda
-//   • Benefícios com ícone de check sólido e fundo escuro semitransparente
-//   • Rodapé com sombra forte, salário em destaque real
-//   • Skeleton pulse que espelha o layout real
-
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Animated,
@@ -29,7 +17,6 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import api from '../../../services/api';
 import { ENDPOINTS } from '../../../constants/endpoints';
 import { useAuthStore } from '../../../store/authStore';
@@ -37,64 +24,64 @@ import { useAuthStore } from '../../../store/authStore';
 const { width: SW } = Dimensions.get('window');
 
 const C = {
-  orange:       '#f97316',
-  orangeDark:   '#ea580c',
-  orangeLight:  '#fff7ed',
-  orangeGlow:   'rgba(249,115,22,0.18)',
+  orange: '#f97316',
+  orangeDark: '#ea580c',
+  orangeLight: '#fff7ed',
+  orangeGlow: 'rgba(255,255,255,0.08)',
   orangeBorder: 'rgba(249,115,22,0.35)',
-  hero:         '#0d1829',
-  heroCard:     '#141f33',
-  heroMuted:    'rgba(255,255,255,0.45)',
-  heroSubtle:   'rgba(255,255,255,0.08)',
-  bg:           '#f4f6fb',
-  surface:      '#ffffff',
-  surface2:     '#f8fafc',
-  border:       '#e9ecf2',
-  text:         '#0d1829',
-  text2:        '#4b5a72',
-  muted:        '#8fa0b5',
-  green:        '#10b981',
-  greenBg:      '#ecfdf5',
-  greenBorder:  '#a7f3d0',
-  indigo:       '#6366f1',
-  indigoBg:     '#eef2ff',
-  red:          '#ef4444',
-  redBg:        '#fef2f2',
-  amber:        '#f59e0b',
-  amberBg:      '#fffbeb',
+  hero: '#ff7410',
+  heroCard: '#141f33',
+  heroMuted: 'rgba(255,255,255,0.8)',
+  heroSubtle: 'rgba(255,255,255,0.12)',
+  bg: '#f4f6fb',
+  surface: '#ffffff',
+  surface2: '#f8fafc',
+  border: '#e9ecf2',
+  text: '#0d1829',
+  text2: '#4b5a72',
+  muted: '#8fa0b5',
+  green: '#10b981',
+  greenBg: '#ecfdf5',
+  greenBorder: '#a7f3d0',
+  indigo: '#6366f1',
+  indigoBg: '#eef2ff',
+  red: '#ef4444',
+  redBg: '#fef2f2',
+  amber: '#f59e0b',
+  amberBg: '#fffbeb',
 };
 
 const F = {
-  regular:  'Poppins_400Regular',
-  medium:   'Poppins_500Medium',
+  regular: 'Poppins_400Regular',
+  medium: 'Poppins_500Medium',
   semiBold: 'Poppins_600SemiBold',
-  bold:     'Poppins_700Bold',
+  bold: 'Poppins_700Bold',
 };
 
 const FORMAT_CFG = {
-  REMOTE:  { label: 'Remoto',      icon: 'home-outline' as const,      color: C.green,  bg: C.greenBg,  border: C.greenBorder },
-  HYBRID:  { label: 'Híbrido',     icon: 'shuffle-outline' as const,    color: C.indigo, bg: C.indigoBg, border: '#c7d2fe' },
-  ONSITE:  { label: 'Presencial',  icon: 'business-outline' as const,   color: C.orange, bg: C.orangeLight, border: C.orangeBorder },
+  REMOTE: { label: 'Remoto', icon: 'home-outline' as const, color: C.green, bg: C.greenBg, border: C.greenBorder },
+  HYBRID: { label: 'Híbrido', icon: 'shuffle-outline' as const, color: C.indigo, bg: C.indigoBg, border: '#c7d2fe' },
+  ONSITE: { label: 'Presencial', icon: 'business-outline' as const, color: C.orange, bg: C.orangeLight, border: C.orangeBorder },
 };
 
 const CONTRACT_CFG = {
-  CLT:        { label: 'CLT',        color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-  PJ:         { label: 'PJ',         color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+  CLT: { label: 'CLT', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
+  PJ: { label: 'PJ', color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
   FREELANCER: { label: 'Freelancer', color: '#7c3aed', bg: '#faf5ff', border: '#ddd6fe' },
 };
 
 const JOBTYPE_CFG = {
-  STANDARD:   'Efetivo',
+  STANDARD: 'Efetivo',
   INTERNSHIP: 'Estágio',
-  TRAINEE:    'Trainee',
+  TRAINEE: 'Trainee',
 };
 
 const AFFIRMATIVE_CFG: Record<string, { label: string; color: string; bg: string; border: string } | null> = {
   NOT_INFORMED: null,
-  PCD:          { label: '♿ Vaga PCD',          color: '#0369a1', bg: '#e0f2fe', border: '#7dd3fc' },
-  WOMEN:        { label: '♀ Vaga para mulheres', color: '#be185d', bg: '#fdf2f8', border: '#f9a8d4' },
-  FIFTY_PLUS:   { label: '50+ anos',             color: '#92400e', bg: '#fffbeb', border: '#fcd34d' },
-  LGBTQIAPN:    { label: '🏳‍🌈 LGBTQIA+',        color: '#6d28d9', bg: '#f5f3ff', border: '#c4b5fd' },
+  PCD: { label: '♿ Vaga PCD', color: '#0369a1', bg: '#e0f2fe', border: '#7dd3fc' },
+  WOMEN: { label: '♀ Vaga para mulheres', color: '#be185d', bg: '#fdf2f8', border: '#f9a8d4' },
+  FIFTY_PLUS: { label: '50+ anos', color: '#92400e', bg: '#fffbeb', border: '#fcd34d' },
+  LGBTQIAPN: { label: '🏳‍🌈 LGBTQIA+', color: '#6d28d9', bg: '#f5f3ff', border: '#c4b5fd' },
 };
 
 interface JobDetail {
@@ -137,9 +124,9 @@ const fmt = {
     Math.ceil((new Date(s).getTime() - Date.now()) / 86_400_000),
 
   employees: (n: number) => {
-    if (n < 10)   return '< 10 funcionários';
-    if (n < 50)   return '10 – 49 funcionários';
-    if (n < 200)  return '50 – 199 funcionários';
+    if (n < 10) return '< 10 funcionários';
+    if (n < 50) return '10 – 49 funcionários';
+    if (n < 200) return '50 – 199 funcionários';
     if (n < 1000) return '200 – 999 funcionários';
     return '1 000+ funcionários';
   },
@@ -156,7 +143,7 @@ function SkeletonPulse() {
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 1,   duration: 750, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 750, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
         Animated.timing(opacity, { toValue: 0.5, duration: 750, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
       ])
     ).start();
@@ -190,7 +177,7 @@ function SkeletonPulse() {
         </View>
         <View style={{ gap: 10 }}>
           <B w={110} h={14} />
-          {[1,2,3,4,5].map((i) => <B key={i} w={i % 3 === 0 ? '65%' : '100%'} h={11} mt={2} />)}
+          {[1, 2, 3, 4, 5].map((i) => <B key={i} w={i % 3 === 0 ? '65%' : '100%'} h={11} mt={2} />)}
         </View>
         <View style={{ gap: 8 }}>
           <B w={110} h={14} />
@@ -235,15 +222,15 @@ function SectionHead({ title, subtitle }: { title: string; subtitle?: string }) 
 
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const router  = useRouter();
+  const router = useRouter();
   const { candidate } = useAuthStore();
 
-  const [job,          setJob]          = useState<JobDetail | null>(null);
-  const [loading,      setLoading]      = useState(true);
-  const [applying,     setApplying]     = useState(false);
+  const [job, setJob] = useState<JobDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
   const [descOverflow, setDescOverflow] = useState(false);
-  const [error,        setError]        = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const contentY = useRef(new Animated.Value(18)).current;
   const contentO = useRef(new Animated.Value(0)).current;
@@ -364,14 +351,14 @@ export default function JobDetailScreen() {
     );
   }
 
-  const fmtCfg      = FORMAT_CFG[job.workFormat];
-  const ctrCfg      = CONTRACT_CFG[job.contractType];
-  const affCfg      = AFFIRMATIVE_CFG[job.affirmative];
-  const daysLeft    = job.deadline ? fmt.daysLeft(job.deadline) : null;
+  const fmtCfg = FORMAT_CFG[job.workFormat];
+  const ctrCfg = CONTRACT_CFG[job.contractType];
+  const affCfg = AFFIRMATIVE_CFG[job.affirmative];
+  const daysLeft = job.deadline ? fmt.daysLeft(job.deadline) : null;
   const deadlineRed = daysLeft !== null && daysLeft <= 3;
-  const location    = (job.city && job.state) ? `${job.city}, ${job.state}` : `${job.company.city}, ${job.company.state}`;
+  const location = (job.city && job.state) ? `${job.city}, ${job.state}` : `${job.company.city}, ${job.company.state}`;
   const allBenefits = [...job.benefits, ...job.customBenefits];
-  const ac          = avatarColor(job.company.name);
+  const ac = avatarColor(job.company.name);
 
   return (
     <View style={{ flex: 1, backgroundColor: C.hero }}>
@@ -430,10 +417,10 @@ export default function JobDetailScreen() {
                       {daysLeft! <= 0
                         ? 'Prazo encerrado'
                         : daysLeft === 1
-                        ? '⚠️ Encerra amanhã'
-                        : daysLeft! <= 3
-                        ? `⚠️ ${daysLeft} dias restantes`
-                        : `Prazo: ${fmt.date(job.deadline)}`}
+                          ? '⚠️ Encerra amanhã'
+                          : daysLeft! <= 3
+                            ? `⚠️ ${daysLeft} dias restantes`
+                            : `Prazo: ${fmt.date(job.deadline)}`}
                     </Text>
                   </>
                 )}
@@ -653,7 +640,7 @@ const sk = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: C.orangeGlow,
+    backgroundColor: '#ff9b54',
   },
   heroCompanyRow: {
     flexDirection: 'row',
@@ -670,11 +657,11 @@ const sk = StyleSheet.create({
   },
   heroAvatarText: {
     fontFamily: F.bold,
-    fontSize: 18,
+    fontSize: 20,
   },
   heroCompanyName: {
     fontFamily: F.semiBold,
-    fontSize: 14,
+    fontSize: 18,
     color: '#fff',
   },
   heroLocationRow: {
@@ -685,7 +672,7 @@ const sk = StyleSheet.create({
   },
   heroLocation: {
     fontFamily: F.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: C.heroMuted,
   },
   appliedBadge: {
@@ -701,12 +688,12 @@ const sk = StyleSheet.create({
   },
   appliedBadgeText: {
     fontFamily: F.semiBold,
-    fontSize: 11,
+    fontSize: 14,
     color: C.green,
   },
   heroTitle: {
     fontFamily: F.bold,
-    fontSize: 26,
+    fontSize: 28,
     color: '#fff',
     lineHeight: 34,
     letterSpacing: -0.4,
@@ -724,7 +711,7 @@ const sk = StyleSheet.create({
   },
   heroMetaText: {
     fontFamily: F.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: C.heroMuted,
   },
   heroDot: {
@@ -745,7 +732,7 @@ const sk = StyleSheet.create({
   },
   pillText: {
     fontFamily: F.semiBold,
-    fontSize: 12,
+    fontSize: 14,
   },
 
   infoGrid: {
@@ -781,7 +768,7 @@ const sk = StyleSheet.create({
   },
   infoCardLabel: {
     fontFamily: F.regular,
-    fontSize: 11,
+    fontSize: 14,
     color: C.muted,
     marginTop: 2,
   },
@@ -791,12 +778,12 @@ const sk = StyleSheet.create({
   },
   infoCardValue: {
     fontFamily: F.semiBold,
-    fontSize: 14,
+    fontSize: 18,
     color: C.text,
   },
   infoCardValueHighlight: {
     color: C.orangeDark,
-    fontSize: 15,
+    fontSize: 18,
   },
 
   section: {
@@ -811,12 +798,12 @@ const sk = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: F.bold,
-    fontSize: 16,
+    fontSize: 18,
     color: C.text,
   },
   sectionSub: {
     fontFamily: F.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: C.muted,
   },
   divider: {
@@ -827,7 +814,7 @@ const sk = StyleSheet.create({
   },
   body: {
     fontFamily: F.regular,
-    fontSize: 14,
+    fontSize: 16,
     color: C.text2,
     lineHeight: 24,
   },
@@ -840,7 +827,7 @@ const sk = StyleSheet.create({
   },
   expandText: {
     fontFamily: F.semiBold,
-    fontSize: 13,
+    fontSize: 16,
     color: C.orange,
   },
 
@@ -865,7 +852,7 @@ const sk = StyleSheet.create({
   },
   benefitText: {
     fontFamily: F.medium,
-    fontSize: 13,
+    fontSize: 16,
     color: C.text,
     flex: 1,
   },
@@ -894,12 +881,12 @@ const sk = StyleSheet.create({
   },
   companyCardName: {
     fontFamily: F.bold,
-    fontSize: 15,
+    fontSize: 18,
     color: C.text,
   },
   companyCardSub: {
     fontFamily: F.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: C.muted,
     marginTop: 2,
   },
@@ -914,7 +901,7 @@ const sk = StyleSheet.create({
   },
   companyStatText: {
     fontFamily: F.medium,
-    fontSize: 13,
+    fontSize: 16,
     color: C.text2,
     flex: 1,
   },
@@ -941,7 +928,7 @@ const sk = StyleSheet.create({
   },
   footerSalaryLabel: {
     fontFamily: F.regular,
-    fontSize: 11,
+    fontSize: 14,
     color: C.muted,
   },
   footerSalary: {
@@ -971,7 +958,7 @@ const sk = StyleSheet.create({
   },
   applyBtnText: {
     fontFamily: F.semiBold,
-    fontSize: 15,
+    fontSize: 16,
     color: '#fff',
     letterSpacing: 0.1,
   },
@@ -988,7 +975,7 @@ const sk = StyleSheet.create({
   },
   doneBtnText: {
     fontFamily: F.semiBold,
-    fontSize: 14,
+    fontSize: 16,
     color: C.green,
   },
 
@@ -1012,12 +999,12 @@ const sk = StyleSheet.create({
   },
   errorTitle: {
     fontFamily: F.bold,
-    fontSize: 18,
+    fontSize: 20,
     color: C.text,
   },
   errorSub: {
     fontFamily: F.regular,
-    fontSize: 14,
+    fontSize: 16,
     color: C.text2,
     textAlign: 'center',
     lineHeight: 22,
@@ -1036,7 +1023,7 @@ const sk = StyleSheet.create({
   },
   retryText: {
     fontFamily: F.semiBold,
-    fontSize: 14,
+    fontSize: 16,
     color: '#fff',
   },
 });
