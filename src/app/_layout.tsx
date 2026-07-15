@@ -40,7 +40,7 @@ export default function RootLayout() {
     }
 
     if (needsOnboarding) {
-      if (!inOnboarding) router.replace('/(onboarding)/step1-disc');
+      if (!inOnboarding) router.replace('/(onboarding)/step-disc');
       return;
     }
 

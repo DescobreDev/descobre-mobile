@@ -114,23 +114,6 @@ export default function Step6Avatar() {
 
       const store = useOnboardingStore.getState();
 
-      console.log('=== PAYLOAD EXPERIENCES ===');
-      console.log(JSON.stringify(store.data.experiences, null, 2));
-
-      console.log('=== PAYLOAD COMPLETO ===');
-      console.log(JSON.stringify({
-        discCompleted: store.data.discCompleted,
-        interestIds: store.data.interestIds,
-        priorities: store.data.priorityIds,
-        education: store.data.education,
-        firstJobSeeker: store.data.firstJobSeeker,
-        experiences: store.data.experiences,
-        skills: store.data.skills,
-        languages: store.data.languages,
-        avatarIndex: selectedAvatar,
-        avatarUrl: photoUri,
-      }, null, 2));
-
       await api.post(ENDPOINTS.onboarding.complete, {
         discCompleted: store.data.discCompleted,
         interestIds: store.data.interestIds,
@@ -145,11 +128,33 @@ export default function Step6Avatar() {
         languages: store.data.languages,
         avatarIndex: selectedAvatar,
         avatarUrl: photoUri,
+
+        // preferências de vaga
+        desiredSectorId: store.data.desiredSectorId,
+        desiredPositionId: store.data.desiredPositionId,
+        salaryMin: store.data.salaryMin
+          ? parseFloat(store.data.salaryMin)
+          : undefined,
+        salaryMax: store.data.salaryMax
+          ? parseFloat(store.data.salaryMax)
+          : undefined,
+        salaryNegotiable: store.data.salaryNegotiable,
+        contractTypes: store.data.contractTypes,
+        experienceLevel: store.data.experienceLevel,
+        acceptsTravel: store.data.acceptsTravel,
+
+        // localização
+        city: store.data.city,
+        state: store.data.state,
       });
 
       router.replace('/(onboarding)/onboarding-complete');
     } catch (err: any) {
       console.log('Erro ao concluir onboarding:', err);
+      Alert.alert(
+        'Erro',
+        'Não foi possível concluir o seu perfil. Tente novamente.'
+      );
     } finally {
       setSaving(false);
     }

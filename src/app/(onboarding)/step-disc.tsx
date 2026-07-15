@@ -1,5 +1,3 @@
-// app/(onboarding)/step1-disc.tsx
-
 import React, { useState } from 'react';
 import {
   View,
@@ -183,7 +181,7 @@ export default function Step1Disc() {
     
     setDiscCompleted(true);
     nextStep();
-    router.push('/(onboarding)/step2-interests');
+    router.push('/(onboarding)/step-interests');
   };
 
   if (subPhase === 'welcome') {
@@ -319,21 +317,21 @@ const styles = StyleSheet.create({
 
   welcomeTitle: {
     fontFamily: FONT.regular,
-    fontSize: 26,
+    fontSize: 28,
     color: COLORS.text2,
     textAlign: 'center',
   },
 
   welcomeBrand: {
     fontFamily: FONT.semiBold,
-    fontSize: 34,
+    fontSize: 36,
     color: COLORS.text,
     textAlign: 'center',
     marginBottom: SPACING.md,
   },
   welcomeSub: {
     fontFamily: FONT.regular,
-    fontSize: 15,
+    fontSize: 18,
     color: COLORS.text2,
     textAlign: 'center',
     lineHeight: 23,
@@ -357,7 +355,7 @@ const styles = StyleSheet.create({
   },
   stepsCardTitle: {
     fontFamily: FONT.semiBold,
-    fontSize: 13,
+    fontSize: 16,
     color: COLORS.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.7,
@@ -381,7 +379,7 @@ const styles = StyleSheet.create({
   stepText: {
     flex: 1,
     fontFamily: FONT.regular,
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.text,
   },
   timeBadge: {
@@ -398,7 +396,7 @@ const styles = StyleSheet.create({
   },
   timeBadgeText: {
     fontFamily: FONT.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textMuted,
   },
 
@@ -452,14 +450,14 @@ const styles = StyleSheet.create({
   },
   discIntroTitle: {
     fontFamily: FONT.semiBold,
-    fontSize: 26,
+    fontSize: 28,
     color: COLORS.text,
     textAlign: 'center',
     marginBottom: SPACING.md,
   },
   discIntroSub: {
     fontFamily: FONT.regular,
-    fontSize: 15,
+    fontSize: 18,
     color: COLORS.text2,
     textAlign: 'center',
     lineHeight: 24,
@@ -485,13 +483,13 @@ const styles = StyleSheet.create({
   },
   guaranteeText: {
     fontFamily: FONT.regular,
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.text2,
   },
 
   loadingText: {
     fontFamily: FONT.regular,
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.textMuted,
     marginTop: SPACING.md,
   },
@@ -518,7 +516,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontFamily: FONT.semiBold,
-    fontSize: 18,
+    fontSize: 20,
     color: COLORS.text,
     lineHeight: 26,
     marginBottom: SPACING.lg,
@@ -545,7 +543,7 @@ const styles = StyleSheet.create({
   },
   resultIntro: {
     fontFamily: FONT.regular,
-    fontSize: 14,
+    fontSize: 18,
     color: COLORS.text2,
     lineHeight: 22,
     marginBottom: SPACING.lg,
@@ -562,7 +560,7 @@ const styles = StyleSheet.create({
   resultNoteText: {
     flex: 1,
     fontFamily: FONT.regular,
-    fontSize: 13,
+    fontSize: 16,
     color: COLORS.text2,
     lineHeight: 19,
   },

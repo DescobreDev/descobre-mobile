@@ -35,7 +35,7 @@ export default function LoginScreen() {
       if (!user?.profileCompleted) {
 
         console.log('Perfil incompleto, redirecionando para onboarding');
-        router.replace('/(onboarding)/step1-disc');
+        router.replace('/(onboarding)/step-disc');
         return;
       }
       router.replace('/(app)/home');
@@ -175,18 +175,18 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   badgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: ORANGE },
-  badgeText: { fontSize: 11, fontFamily: 'Poppins_600SemiBold', color: ORANGE_DARK },
+  badgeText: { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: ORANGE_DARK },
   title: {
-    fontSize: 24, fontFamily: 'Poppins_700Bold', color: TEXT,
+    fontSize: 26, fontFamily: 'Poppins_700Bold', color: TEXT,
     letterSpacing: -0.5, marginBottom: 6, textAlign: 'center',
   },
   subtitle: {
-    fontSize: 13, color: TEXT_2, lineHeight: 20, marginBottom: 28,
+    fontSize: 16, color: TEXT_2, lineHeight: 20, marginBottom: 28,
     textAlign: 'center', fontFamily: 'Poppins_400Regular',
   },
   field: { marginBottom: 16 },
   label: {
-    fontSize: 11, fontFamily: 'Poppins_600SemiBold', color: TEXT_2,
+    fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: TEXT_2,
     textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 7,
   },
   inputWrap: {
@@ -195,10 +195,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: BORDER,
     borderRadius: R_MD, paddingHorizontal: 14,
   },
-  inputIcon: { fontSize: 16, marginRight: 10 },
+  inputIcon: { fontSize: 18, marginRight: 10 },
   input: { flex: 1, fontSize: 15, color: TEXT, fontFamily: 'Poppins_400Regular' },
   eyeBtn: { padding: 2 },
-  eyeIcon: { fontSize: 16 },
+  eyeIcon: { fontSize: 18 },
   btnPrimary: {
     height: 52, backgroundColor: ORANGE,
     borderRadius: R_MD, alignItems: 'center', justifyContent: 'center',
@@ -207,10 +207,10 @@ const styles = StyleSheet.create({
     shadowRadius: 14, elevation: 6,
   },
   btnDisabled: { opacity: 0.6 },
-  btnPrimaryText: { fontSize: 16, fontFamily: 'Poppins_700Bold', color: '#fff', letterSpacing: 0.2 },
+  btnPrimaryText: { fontSize: 18, fontFamily: 'Poppins_700Bold', color: '#fff', letterSpacing: 0.2 },
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 24 },
-  footerText: { fontSize: 13, color: TEXT_MUTED, fontFamily: 'Poppins_400Regular' },
-  footerLink: { fontSize: 13, color: ORANGE, fontFamily: 'Poppins_700Bold' },
+  footerText: { fontSize: 16, color: TEXT_MUTED, fontFamily: 'Poppins_400Regular' },
+  footerLink: { fontSize: 16, color: ORANGE, fontFamily: 'Poppins_700Bold' },
 
   logo: {
     width: 400,

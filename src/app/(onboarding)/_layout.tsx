@@ -21,13 +21,15 @@ export default function OnboardingLayout() {
         contentStyle: { backgroundColor: '#fff' },
       }}
     >
-      <Stack.Screen name="step1-disc" />
-      <Stack.Screen name="step2-interests" />
-      <Stack.Screen name="step3-priority" />
-      <Stack.Screen name="step4-education" />
-      <Stack.Screen name="step5-experience" />
-      <Stack.Screen name="step6-skills" />
-      <Stack.Screen name="step7-avatar" />
+      <Stack.Screen name="step-disc" />
+      <Stack.Screen name="step-interests" />
+      <Stack.Screen name="step-job-preferences" />
+      <Stack.Screen name="step-location" />
+      <Stack.Screen name="step-priority" />
+      <Stack.Screen name="step-education" />
+      <Stack.Screen name="step-experience" />
+      <Stack.Screen name="step-skills" />
+      <Stack.Screen name="step-avatar" />
       <Stack.Screen
         name="onboarding-complete"
         options={{ animation: 'fade', gestureEnabled: false }}

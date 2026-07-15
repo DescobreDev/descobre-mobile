@@ -90,7 +90,7 @@ export default function Step3Priority() {
 
       nextStep();
 
-      router.push('/(onboarding)/step4-education');
+      router.push('/(onboarding)/step-education');
     } finally {
       setSaving(false);
     }
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   },
 
   icon: {
-    fontSize: 20,
+    fontSize: 24,
     marginRight: 12,
   },
 
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: '#fff',
     fontFamily: FONT.bold,
-    fontSize: 11,
+    fontSize: 14,
   },
 
   badgeEmpty: {
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     color: COLORS.textMuted,
     fontFamily: FONT.regular,
-    fontSize: 12,
+    fontSize: 14,
   },
 
   footer: {
@@ -283,6 +283,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: COLORS.textMuted,
     fontFamily: FONT.regular,
-    fontSize: 12,
+    fontSize: 14,
   },
 });

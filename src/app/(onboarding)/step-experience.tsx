@@ -314,7 +314,7 @@ export default function Step4Experience() {
       }));
     setExperiences(validExps);
     nextStep();
-    router.push('/(onboarding)/step6-skills');
+    router.push('/(onboarding)/step-skills');
   };
 
   const handleBack = () => {
@@ -428,17 +428,17 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     flex: 1,
   },
-  firstJobEmoji: { fontSize: 24 },
+  firstJobEmoji: { fontSize: 26 },
   firstJobTitle: {
     fontFamily: FONT.semiBold,
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.text,
     marginBottom: 2,
   },
   firstJobTitleActive: { color: COLORS.orangeDark },
   firstJobSub: {
     fontFamily: FONT.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textMuted,
   },
   checkBox: {
@@ -487,17 +487,17 @@ const styles = StyleSheet.create({
   cardIndexBadgeOk: { backgroundColor: COLORS.green },
   cardIndexText: {
     fontFamily: FONT.bold,
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.text2,
   },
   cardTitle: {
     fontFamily: FONT.semiBold,
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.text,
   },
   cardSubtitle: {
     fontFamily: FONT.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.text2,
   },
   cardHeaderRight: {
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   fieldBlock: { gap: 4 },
   fieldLabel: {
     fontFamily: FONT.semiBold,
-    fontSize: 13,
+    fontSize: 14,
     color: COLORS.text,
   },
   fieldOptional: {
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontFamily: FONT.regular,
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.text,
     backgroundColor: COLORS.surface,
   },
@@ -548,7 +548,7 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontFamily: FONT.medium,
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.text,
   },
 
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
   },
   addBtnText: {
     fontFamily: FONT.semiBold,
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.orange,
   },
 
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
   },
   footerHint: {
     fontFamily: FONT.regular,
-    fontSize: 12,
+    fontSize: 16,
     color: COLORS.textMuted,
     textAlign: 'center',
   },

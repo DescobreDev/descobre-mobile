@@ -75,7 +75,7 @@ export default function Step3Education() {
         : null
     );
     nextStep();
-    router.push('/(onboarding)/step5-experience');
+    router.push('/(onboarding)/step-experience');
   };
 
   const handleBack = () => {
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   levelLabel: {
     fontFamily: FONT.medium,
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.text2,
     textAlign: 'center',
     lineHeight: 16,
@@ -269,12 +269,12 @@ const styles = StyleSheet.create({
   institutionBlock: { gap: SPACING.sm},
   institutionLabel: {
     fontFamily: FONT.semiBold,
-    fontSize: 15,
+    fontSize: 18,
     color: COLORS.text,
   },
   institutionOptional: {
     fontFamily: FONT.regular,
-    fontSize: 13,
+    fontSize: 16,
     color: COLORS.textMuted,
   },
   inputWrapper: {
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontFamily: FONT.regular,
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.text,
   },
 
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   suggestionsTitle: {
     fontFamily: FONT.semiBold,
-    fontSize: 11,
+    fontSize: 14,
     color: COLORS.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.7,
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontFamily: FONT.medium,
-    fontSize: 13,
+    fontSize: 16,
     color: COLORS.text2,
   },
 
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   footerHint: {
     fontFamily: FONT.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textMuted,
     textAlign: 'center',
   },

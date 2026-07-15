@@ -7,7 +7,16 @@ export const ENDPOINTS = {
   onboarding: {
     interests:  '/onboarding/interests',
     priorities: '/onboarding/priorities',
-    complete:   '/onboarding/complete',
+
+    sectors: (search?: string) =>
+      `/onboarding/sectors${search ? `?search=${encodeURIComponent(search)}` : ''}`,
+
+    positions: (sectorId: number, search?: string) =>
+      `/onboarding/positions?sectorId=${sectorId}${
+        search ? `&search=${encodeURIComponent(search)}` : ''
+      }`,
+
+    complete: '/onboarding/complete',
   },
 
   candidates: {

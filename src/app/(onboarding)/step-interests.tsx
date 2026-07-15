@@ -160,7 +160,7 @@ export default function Step2Interests() {
 
       nextStep();
 
-      router.push('/(onboarding)/step3-priority');
+      router.push('/(onboarding)/step-job-preferences');
     } finally {
       setSaving(false);
     }
@@ -278,19 +278,19 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     fontFamily: FONT.semiBold,
-    fontSize: 16,
+    fontSize: 18,
     color: COLORS.text,
   },
 
   sectionCounter: {
     fontFamily: FONT.medium,
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textMuted,
   },
 
   sectionHint: {
     fontFamily: FONT.regular,
-    fontSize: 13,
+    fontSize: 16,
     color: COLORS.text2,
     marginBottom: SPACING.md,
     lineHeight: 19,
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
 
   categoryLabel: {
     fontFamily: FONT.semiBold,
-    fontSize: 11,
+    fontSize: 14,
     color: COLORS.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -337,12 +337,12 @@ const styles = StyleSheet.create({
   },
 
   chipEmoji: {
-    fontSize: 14,
+    fontSize: 16,
   },
 
   chipLabel: {
     fontFamily: FONT.medium,
-    fontSize: 13,
+    fontSize: 16,
     color: COLORS.text2,
   },
 
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
 
   footerHint: {
     fontFamily: FONT.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textMuted,
     textAlign: 'center',
   },

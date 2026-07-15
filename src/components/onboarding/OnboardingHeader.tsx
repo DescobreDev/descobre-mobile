@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   stepCount: {
     fontFamily: 'Poppins_600SemiBold',
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.orange,
   },
   stepTotal: {
@@ -168,13 +168,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'Poppins_700Bold',
-    fontSize: 22,
+    fontSize: 24,
     color: COLORS.text,
     lineHeight: 30,
   },
   subtitle: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.text2,
     lineHeight: 21,
   },
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   },
   optionalText: {
     fontFamily: 'Poppins_500Medium',
-    fontSize: 11,
+    fontSize: 16,
     color: COLORS.textMuted,
   },
 });

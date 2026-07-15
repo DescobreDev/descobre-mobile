@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   // Textos
   title: {
     fontFamily: FONT.bold,
-    fontSize: 32,
+    fontSize: 34,
     color: COLORS.text,
     textAlign: 'center',
     marginBottom: 12,
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: FONT.regular,
-    fontSize: 15,
+    fontSize: 16,
     color: COLORS.text2,
     textAlign: 'center',
     lineHeight: 24,
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontFamily: FONT.semiBold,
-    fontSize: 13,
+    fontSize: 16,
     color: COLORS.orangeDark,
   },
 
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   },
   btnText: {
     fontFamily: FONT.semiBold,
-    fontSize: 16,
+    fontSize: 18,
     color: '#fff',
     letterSpacing: 0.2,
   },

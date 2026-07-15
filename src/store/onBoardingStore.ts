@@ -38,6 +38,15 @@ export interface OnboardingLanguage {
   level: string;
 }
 
+// Espelham os enums do Prisma (ContractType / ExperienceLevel)
+export type ContractType = 'CLT' | 'PJ' | 'FREELANCER';
+export type ExperienceLevel =
+  | 'ESTAGIO'
+  | 'JUNIOR'
+  | 'PLENO'
+  | 'SENIOR'
+  | 'ESPECIALISTA';
+
 export interface OnboardingData {
   discCompleted: boolean;
 
@@ -45,7 +54,7 @@ export interface OnboardingData {
   priorityIds: number[];
 
   education: OnboardingEducation | null;
-  
+
   firstJobSeeker: boolean;
   experiences: OnboardingExperience[];
 
@@ -54,6 +63,22 @@ export interface OnboardingData {
 
   avatarIndex: number | null;
   avatarUrl: string | null;
+
+  // --- NOVO: preferências de vaga ---
+  desiredSectorId: number | null;
+  desiredSectorName: string;
+  desiredPositionId: number | null;
+  desiredPositionName: string;
+  salaryMin: string;
+  salaryMax: string;
+  salaryNegotiable: boolean;
+  contractTypes: ContractType[];
+  experienceLevel: ExperienceLevel | null;
+  acceptsTravel: boolean | null;
+
+  // --- NOVO: localização ---
+  city: string;
+  state: string;
 }
 
 interface OnboardingState {
@@ -75,6 +100,21 @@ interface OnboardingState {
   setLanguages: (languages: OnboardingLanguage[]) => void;
   setAvatar: (index: number | null, url: string | null) => void;
 
+  // --- NOVO ---
+  setJobPreferences: (payload: {
+    desiredSectorId: number | null;
+    desiredSectorName: string;
+    desiredPositionId: number | null;
+    desiredPositionName: string;
+    salaryMin: string;
+    salaryMax: string;
+    salaryNegotiable: boolean;
+    contractTypes: ContractType[];
+    experienceLevel: ExperienceLevel | null;
+    acceptsTravel: boolean | null;
+  }) => void;
+  setLocation: (city: string, state: string) => void;
+
   reset: () => void;
 }
 
@@ -89,11 +129,25 @@ const initialData: OnboardingData = {
   languages: [],
   avatarIndex: null,
   avatarUrl: null,
+
+  desiredSectorId: null,
+  desiredSectorName: '',
+  desiredPositionId: null,
+  desiredPositionName: '',
+  salaryMin: '',
+  salaryMax: '',
+  salaryNegotiable: false,
+  contractTypes: [],
+  experienceLevel: null,
+  acceptsTravel: null,
+
+  city: '',
+  state: '',
 };
 
 export const useOnboardingStore = create<OnboardingState>((set) => ({
   currentStep: 1,
-  totalSteps: 7,
+  totalSteps: 9,
   data: initialData,
 
   nextStep: () =>
@@ -135,6 +189,16 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setAvatar: (index, url) =>
     set((state) => ({
       data: { ...state.data, avatarIndex: index, avatarUrl: url },
+    })),
+
+  setJobPreferences: (payload) =>
+    set((state) => ({
+      data: { ...state.data, ...payload },
+    })),
+
+  setLocation: (city, state_) =>
+    set((state) => ({
+      data: { ...state.data, city, state: state_ },
     })),
 
   reset: () => set({ currentStep: 1, data: initialData }),

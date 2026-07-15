@@ -277,6 +277,7 @@ export default function JobDetailScreen() {
               setJob((p) => p ? { ...p, alreadyApplied: true, applicationStatus: 'RECEBIDA' } : p);
               Alert.alert('🎉 Pronto!', 'Sua candidatura foi enviada com sucesso.');
             } catch (e: any) {
+              console.log('Erro ao candidatar-se:', e);
               Alert.alert('Erro', e?.response?.data?.message ?? 'Tente novamente.');
             } finally {
               setApplying(false);
