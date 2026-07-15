@@ -129,7 +129,6 @@ export default function Step6Avatar() {
         avatarIndex: selectedAvatar,
         avatarUrl: photoUri,
 
-        // preferências de vaga
         desiredSectorId: store.data.desiredSectorId,
         desiredPositionId: store.data.desiredPositionId,
         salaryMin: store.data.salaryMin
@@ -143,7 +142,6 @@ export default function Step6Avatar() {
         experienceLevel: store.data.experienceLevel,
         acceptsTravel: store.data.acceptsTravel,
 
-        // localização
         city: store.data.city,
         state: store.data.state,
       });

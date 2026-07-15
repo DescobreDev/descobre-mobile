@@ -134,6 +134,7 @@ export default function StepLocation() {
       >
         <TouchableOpacity
           onPress={handleUseGps}
+          disabled={false}
           activeOpacity={0.75}
           style={styles.gpsButton}
         >

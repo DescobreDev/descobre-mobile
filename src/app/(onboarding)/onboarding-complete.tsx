@@ -265,7 +265,7 @@ export default function OnboardingComplete() {
 
   const handleGoHome = () => {
     reset();
-    router.replace('_layout');
+    router.replace('/(app)/home');
   };
 
   const HIGHLIGHTS = [
@@ -367,7 +367,6 @@ export default function OnboardingComplete() {
   );
 }
 
-// ─── ESTILOS ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
