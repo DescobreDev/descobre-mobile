@@ -25,7 +25,7 @@ const LANGUAGE_LEVELS = [
 ] as const;
 
 const COMMON_SKILLS = [
-  'Excel', 'Word', 'PowerPoint', 'Liderança',
+  'Excel', 'Word', 'PowerPoint', 'Premiere Pro',
 ];
 
 const COMMON_LANGUAGES = [
