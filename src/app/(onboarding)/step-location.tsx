@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
@@ -21,39 +20,9 @@ import {
 } from '../../components/onboarding/OnboardingHeader';
 
 import { PrimaryButton } from '../../components/onboarding/PrimaryButton';
+import { SmartLocationInput } from '../../components/onboarding/SmartLocationInput';
 
 import { useOnboardingStore } from '../../store/onBoardingStore';
-
-const UFS = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
-  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
-  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-];
-
-interface ChipProps {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}
-
-function Chip({ label, selected, onPress }: ChipProps) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.75}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: selected }}
-      accessibilityLabel={label}
-      style={[styles.chip, selected && styles.chipSelected]}
-    >
-      <Text
-        style={[styles.chipLabel, selected && styles.chipLabelSelected]}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
 
 export default function StepLocation() {
   const router = useRouter();
@@ -86,10 +55,9 @@ export default function StepLocation() {
       });
 
       if (address.length > 0) {
-        setCity(address[0].city ?? '');
-
         const uf = getUfFromStateName(address[0].region ?? '');
 
+        setCity(address[0].city ?? '');
         setState(uf);
       }
     } catch (error) {
@@ -134,7 +102,6 @@ export default function StepLocation() {
       >
         <TouchableOpacity
           onPress={handleUseGps}
-          disabled={false}
           activeOpacity={0.75}
           style={styles.gpsButton}
         >
@@ -146,28 +113,15 @@ export default function StepLocation() {
 
         <View style={styles.section}>
           <Text style={styles.fieldLabel}>Cidade</Text>
-          <TextInput
-            value={city}
-            onChangeText={setCity}
+          <SmartLocationInput
+            city={city}
+            state={state}
+            onSelect={(selectedCity, uf) => {
+              setCity(selectedCity);
+              setState(uf);
+            }}
             placeholder="Ex: Itapetininga"
-            placeholderTextColor={COLORS.textMuted}
-            style={styles.input}
-            autoCapitalize="words"
           />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.fieldLabel}>Estado</Text>
-          <View style={styles.chipsRow}>
-            {UFS.map((uf) => (
-              <Chip
-                key={uf}
-                label={uf}
-                selected={state === uf}
-                onPress={() => setState(uf)}
-              />
-            ))}
-          </View>
         </View>
       </ScrollView>
 
@@ -211,7 +165,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.border,
     marginBottom: SPACING.xl,
-    opacity: 0.6,
   },
 
   gpsButtonLabel: {
@@ -231,48 +184,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: SPACING.sm,
-  },
-
-  input: {
-    fontFamily: FONT.regular,
-    fontSize: 16,
-    color: COLORS.text,
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 99,
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface,
-  },
-
-  chipSelected: {
-    borderColor: COLORS.orange,
-    backgroundColor: COLORS.orangeLight,
-  },
-
-  chipLabel: {
-    fontFamily: FONT.medium,
-    fontSize: 15,
-    color: COLORS.text2,
-  },
-
-  chipLabelSelected: {
-    color: COLORS.orangeDark,
-    fontFamily: FONT.semiBold,
   },
 
   footer: {

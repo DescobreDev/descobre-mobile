@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   ScrollView,
   TouchableOpacity,
@@ -11,10 +10,11 @@ import {
   ActivityIndicator,
   RefreshControl,
   Dimensions,
-  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/authStore';
 import { useJobs } from '../../hooks/useJobs';
 import { JobListItem, WorkFormat, ContractType } from '../../types/jobs';
@@ -25,14 +25,14 @@ const FEATURED_CARD_WIDTH = SCREEN_WIDTH * 0.78;
 const C = {
   orange: '#f97316',
   orangeDark: '#ea580c',
-  orangeLight: '#fff2e3',
+  orangeLight: '#fff7ed',
   orangeBorder: 'rgba(249,115,22,0.25)',
   text: '#0d1829',
   text2: '#5a6a82',
-  textMuted: '#9aaabb',
+  textMuted: '#aab4c4',
   surface: '#ffffff',
   surface2: '#f8fafc',
-  border: '#e9ecf2',
+  border: '#eef1f6',
   green: '#10b981',
   greenLight: '#ecfdf5',
   indigo: '#6366f1',
@@ -54,9 +54,9 @@ const FORMAT_LABELS: Record<WorkFormat, string> = {
 };
 
 const FORMAT_COLORS: Record<WorkFormat, { bg: string; text: string }> = {
-  REMOTE:  { bg: C.greenLight, text: C.green },
-  HYBRID:  { bg: C.indigoLight, text: C.indigo },
-  ONSITE:  { bg: C.orangeLight, text: C.orangeDark },
+  REMOTE: { bg: C.greenLight, text: C.green },
+  HYBRID: { bg: C.indigoLight, text: C.indigo },
+  ONSITE: { bg: C.orangeLight, text: C.orangeDark },
 };
 
 const CONTRACT_LABELS: Record<ContractType, string> = {
@@ -81,21 +81,14 @@ function timeAgo(dateStr: string): string {
 }
 
 function initials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
+  return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 }
 
 function FormatBadge({ format }: { format: WorkFormat }) {
   const color = FORMAT_COLORS[format];
   return (
     <View style={[styles.badge, { backgroundColor: color.bg }]}>
-      <Text style={[styles.badgeText, { color: color.text }]}>
-        {FORMAT_LABELS[format]}
-      </Text>
+      <Text style={[styles.badgeText, { color: color.text }]}>{FORMAT_LABELS[format]}</Text>
     </View>
   );
 }
@@ -110,9 +103,9 @@ function CompanyAvatar({ name, size = 44 }: { name: string; size?: number }) {
         {
           width: size,
           height: size,
-          borderRadius: size / 4,
-          backgroundColor: colors[colorIndex] + '22',
-          borderColor: colors[colorIndex] + '44',
+          borderRadius: size / 3.4,
+          backgroundColor: colors[colorIndex] + '1c',
+          borderColor: colors[colorIndex] + '40',
         },
       ]}
     >
@@ -125,42 +118,35 @@ function CompanyAvatar({ name, size = 44 }: { name: string; size?: number }) {
 
 function FeaturedCard({ job, onPress }: { job: JobListItem; onPress: () => void }) {
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={styles.featuredCard}
-      activeOpacity={0.88}
-    >
+    <TouchableOpacity onPress={onPress} style={styles.featuredCard} activeOpacity={0.9}>
       <View style={styles.featuredTop}>
         <CompanyAvatar name={job.company.name} size={46} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.featuredCompany} numberOfLines={1}>
-            {job.company.name}
-          </Text>
-          <Text style={styles.featuredLocation} numberOfLines={1}>
-            {job.city && job.state
-              ? `${job.city}, ${job.state}`
-              : job.company.city
-              ? `${job.company.city}, ${job.company.state}`
-              : 'Brasil'}
-          </Text>
+          <Text style={styles.featuredCompany} numberOfLines={1}>{job.company.name}</Text>
+          <View style={styles.featuredLocationRow}>
+            <Ionicons name="location-outline" size={12} color={C.textMuted} />
+            <Text style={styles.featuredLocation} numberOfLines={1}>
+              {job.city && job.state
+                ? `${job.city}, ${job.state}`
+                : job.company.city
+                ? `${job.company.city}, ${job.company.state}`
+                : 'Brasil'}
+            </Text>
+          </View>
         </View>
         {job.alreadyApplied && (
           <View style={styles.appliedDot}>
-            <Ionicons name="checkmark-circle" size={18} color={C.green} />
+            <Ionicons name="checkmark-circle" size={20} color={C.green} />
           </View>
         )}
       </View>
 
-      <Text style={styles.featuredTitle} numberOfLines={2}>
-        {job.title}
-      </Text>
+      <Text style={styles.featuredTitle} numberOfLines={2}>{job.title}</Text>
 
       <View style={styles.featuredBadges}>
         <FormatBadge format={job.workFormat} />
         <View style={[styles.badge, { backgroundColor: C.surface2 }]}>
-          <Text style={[styles.badgeText, { color: C.text2 }]}>
-            {CONTRACT_LABELS[job.contractType]}
-          </Text>
+          <Text style={[styles.badgeText, { color: C.text2 }]}>{CONTRACT_LABELS[job.contractType]}</Text>
         </View>
       </View>
 
@@ -174,54 +160,34 @@ function FeaturedCard({ job, onPress }: { job: JobListItem; onPress: () => void 
 
 function JobListItemCard({ job, onPress }: { job: JobListItem; onPress: () => void }) {
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={styles.listItem}
-      activeOpacity={0.82}
-    >
+    <TouchableOpacity onPress={onPress} style={styles.listItem} activeOpacity={0.85}>
       <CompanyAvatar name={job.company.name} size={46} />
-
       <View style={styles.listItemContent}>
-        <Text style={styles.listItemTitle} numberOfLines={1}>
-          {job.title}
-        </Text>
-        <Text style={styles.listItemCompany} numberOfLines={1}>
-          {job.company.name}
-        </Text>
+        <Text style={styles.listItemTitle} numberOfLines={1}>{job.title}</Text>
+        <Text style={styles.listItemCompany} numberOfLines={1}>{job.company.name}</Text>
         <View style={styles.listItemMeta}>
           <FormatBadge format={job.workFormat} />
           <Text style={styles.listItemSalary}>{formatSalary(job.salary)}</Text>
         </View>
       </View>
-
       <View style={styles.listItemRight}>
         <Text style={styles.listItemTime}>{timeAgo(job.createdAt)}</Text>
         {job.alreadyApplied ? (
           <Ionicons name="checkmark-circle" size={18} color={C.green} />
         ) : (
-          <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+          <View style={styles.chevronCircle}>
+            <Ionicons name="chevron-forward" size={14} color={C.textMuted} />
+          </View>
         )}
       </View>
     </TouchableOpacity>
   );
 }
 
-type FilterChipProps = {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-};
-
-function FilterChip({ label, active, onPress }: FilterChipProps) {
+function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.filterChip, active && styles.filterChipActive]}
-      activeOpacity={0.75}
-    >
-      <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
-        {label}
-      </Text>
+    <TouchableOpacity onPress={onPress} style={[styles.filterChip, active && styles.filterChipActive]} activeOpacity={0.8}>
+      <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -229,7 +195,7 @@ function FilterChip({ label, active, onPress }: FilterChipProps) {
 function SkeletonCard({ featured = false }: { featured?: boolean }) {
   return (
     <View style={featured ? styles.skeletonFeatured : styles.skeletonList}>
-      <View style={[styles.skeletonBox, { width: 46, height: 46, borderRadius: 10 }]} />
+      <View style={[styles.skeletonBox, { width: 46, height: 46, borderRadius: 12 }]} />
       <View style={{ flex: 1, gap: 8 }}>
         <View style={[styles.skeletonBox, { height: 14, width: '70%' }]} />
         <View style={[styles.skeletonBox, { height: 12, width: '45%' }]} />
@@ -241,18 +207,11 @@ function SkeletonCard({ featured = false }: { featured?: boolean }) {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { candidate } = useAuthStore();
   const {
-    jobs,
-    featured,
-    isLoading,
-    isLoadingMore,
-    hasMore,
-    error,
-    filters,
-    setFilters,
-    loadMore,
-    refresh,
+    jobs, featured, isLoading, isLoadingMore, hasMore, error,
+    filters, setFilters, loadMore, refresh,
   } = useJobs();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -260,13 +219,10 @@ export default function HomeScreen() {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     refresh();
-
     setTimeout(() => setRefreshing(false), 800);
   }, [refresh]);
 
-  const goToJob = (id: number) => {
-    router.push(`/(app)/job/${id}`);
-  };
+  const goToJob = (id: number) => router.push(`/(app)/job/${id}`);
 
   const FORMAT_FILTERS: { label: string; value: WorkFormat | null }[] = [
     { label: 'Todos', value: null },
@@ -285,7 +241,7 @@ export default function HomeScreen() {
 
   const ListHeader = (
     <View>
-      <View style={styles.searchRow}>
+      <View style={styles.searchSection}>
         <View style={styles.searchBox}>
           <Ionicons name="search-outline" size={18} color={C.textMuted} />
           <TextInput
@@ -297,39 +253,24 @@ export default function HomeScreen() {
             returnKeyType="search"
           />
           {filters.search.length > 0 && (
-            <TouchableOpacity onPress={() => setFilters({ search: '' })}>
+            <TouchableOpacity onPress={() => setFilters({ search: '' })} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <Ionicons name="close-circle" size={18} color={C.textMuted} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtersScroll}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
         {FORMAT_FILTERS.map((f) => (
-          <FilterChip
-            key={f.label}
-            label={f.label}
-            active={filters.workFormat === f.value}
-            onPress={() => setFilters({ workFormat: f.value })}
-          />
+          <FilterChip key={f.label} label={f.label} active={filters.workFormat === f.value} onPress={() => setFilters({ workFormat: f.value })} />
         ))}
-
         <View style={styles.filterDivider} />
-
         {CONTRACT_FILTERS.map((f) => (
           <FilterChip
             key={f.label}
             label={f.label}
             active={filters.contractType === f.value}
-            onPress={() =>
-              setFilters({
-                contractType: filters.contractType === f.value ? null : f.value,
-              })
-            }
+            onPress={() => setFilters({ contractType: filters.contractType === f.value ? null : f.value })}
           />
         ))}
       </ScrollView>
@@ -342,7 +283,6 @@ export default function HomeScreen() {
               <Text style={styles.sectionLink}>Ver todas</Text>
             </TouchableOpacity>
           </View>
-
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -360,7 +300,7 @@ export default function HomeScreen() {
 
       {isLoading && (
         <View style={styles.featuredSection}>
-          <View style={[styles.skeletonBox, { height: 16, width: 120, marginBottom: 14 }]} />
+          <View style={[styles.skeletonBox, { height: 16, width: 120, marginBottom: 14, marginLeft: 16 }]} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.featuredScroll}>
             {[0, 1].map((i) => <SkeletonCard key={i} featured />)}
           </ScrollView>
@@ -369,90 +309,77 @@ export default function HomeScreen() {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          {filters.search || filters.workFormat || filters.contractType
-            ? 'Resultados'
-            : 'Todas as vagas'}
+          {filters.search || filters.workFormat || filters.contractType ? 'Resultados' : 'Todas as vagas'}
         </Text>
-        {!isLoading && (
-          <Text style={styles.jobCount}>{jobs.length} vagas</Text>
-        )}
+        {!isLoading && <Text style={styles.jobCount}>{jobs.length} vagas</Text>}
       </View>
     </View>
   );
 
   if (error && !isLoading) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <View style={[styles.safe, { paddingTop: insets.top }]}>
         <View style={styles.errorState}>
-          <Ionicons name="cloud-offline-outline" size={48} color={C.textMuted} />
+          <View style={styles.errorIconCircle}>
+            <Ionicons name="cloud-offline-outline" size={32} color={C.red} />
+          </View>
           <Text style={styles.errorTitle}>Algo deu errado</Text>
           <Text style={styles.errorSub}>{error}</Text>
-          <TouchableOpacity onPress={refresh} style={styles.retryBtn}>
+          <TouchableOpacity onPress={refresh} style={styles.retryBtn} activeOpacity={0.85}>
+            <Ionicons name="refresh" size={16} color="#fff" />
             <Text style={styles.retryBtnText}>Tentar novamente</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
+    <View style={[styles.safe, { paddingTop: insets.top }]}>
+      <LinearGradient colors={[C.orange, C.orangeDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
+        <View style={styles.headerBlob} />
         <View>
-          <Text style={styles.headerGreeting}>Olá, {firstName} 👋</Text>
-          <Text style={styles.headerSub}>DESCUBRA sua próxima oportunidade</Text>
+          <Text style={styles.headerGreeting}>Olá, {firstName}</Text>
+          <Text style={styles.headerSub}>Descubra sua próxima oportunidade</Text>
         </View>
-        <TouchableOpacity
-          onPress={() => router.push('/(app)/profile')}
-          style={styles.avatarBtn}
-        >
+        <TouchableOpacity onPress={() => router.push('/(app)/profile')} style={styles.avatarBtn} activeOpacity={0.85}>
           <Text style={styles.avatarBtnText}>{firstName[0]}</Text>
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
       <FlatList
         data={isLoading ? [] : jobs}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
-          <JobListItemCard job={item} onPress={() => goToJob(item.id)} />
-        )}
+        renderItem={({ item }) => <JobListItemCard job={item} onPress={() => goToJob(item.id)} />}
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={C.orange}
-            colors={[C.orange]}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={C.orange} colors={[C.orange]} />}
         onEndReached={loadMore}
         onEndReachedThreshold={0.4}
         ListFooterComponent={
           isLoadingMore ? (
-            <View style={styles.loadMoreSpinner}>
-              <ActivityIndicator color={C.orange} />
-            </View>
+            <View style={styles.loadMoreSpinner}><ActivityIndicator color={C.orange} /></View>
           ) : !hasMore && jobs.length > 0 ? (
             <Text style={styles.endText}>Você viu todas as vagas disponíveis</Text>
           ) : null
         }
         ListEmptyComponent={
           isLoading ? (
-            <View style={{ gap: 10, paddingHorizontal: 16 }}>
+            <View style={{ gap: 10, paddingHorizontal: 16, paddingTop: 4 }}>
               {[0, 1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <Ionicons name="search-outline" size={44} color={C.textMuted} />
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="search-outline" size={32} color={C.textMuted} />
+              </View>
               <Text style={styles.emptyTitle}>Nenhuma vaga encontrada</Text>
-              <Text style={styles.emptySub}>
-                Tente ajustar os filtros ou buscar por outro termo.
-              </Text>
+              <Text style={styles.emptySub}>Tente ajustar os filtros ou buscar por outro termo.</Text>
               <TouchableOpacity
                 onPress={() => setFilters({ search: '', workFormat: null, contractType: null })}
                 style={styles.clearFiltersBtn}
+                activeOpacity={0.85}
               >
                 <Text style={styles.clearFiltersBtnText}>Limpar filtros</Text>
               </TouchableOpacity>
@@ -460,224 +387,117 @@ export default function HomeScreen() {
           )
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: C.surface2,
-  },
+  safe: { flex: 0, backgroundColor: C.surface2 },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? 16 : 8,
-    paddingBottom: 12,
-    backgroundColor: C.orange,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 22,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
   },
-  headerGreeting: {
-    fontFamily: F.bold,
-    fontSize: 24,
-    color: '#fff',
+  headerBlob: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    top: -80,
+    right: -40,
   },
-  headerSub: {
-    fontFamily: F.regular,
-    fontSize: 15,
-    color: '#fff',
-    marginTop: 1,
-  },
-  
+  headerGreeting: { fontFamily: F.bold, fontSize: 22, color: '#fff' },
+  headerSub: { fontFamily: F.regular, fontSize: 13.5, color: 'rgba(255,255,255,0.88)', marginTop: 2 },
   avatarBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: C.orangeLight,
-    borderWidth: 2,
-    borderColor: C.orangeBorder,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarBtnText: {
-    fontFamily: F.bold,
-    fontSize: 18,
-    color: C.orange,
-  },
+  avatarBtnText: { fontFamily: F.bold, fontSize: 17, color: '#fff' },
 
-  // Lista
-  listContent: {
-    paddingBottom: 24,
-  },
+  listContent: { paddingBottom: 24 },
 
-  // Busca
-  searchRow: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 10,
-    backgroundColor: C.orangeLight,
-  },
-
+  searchSection: { paddingHorizontal: 16, marginTop: -18, marginBottom: 4 },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: C.surface2,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: C.border,
+    backgroundColor: C.surface,
+    borderRadius: 14,
     paddingHorizontal: 14,
-    height: 46,
+    height: 50,
+    shadowColor: '#0d1829',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 4,
   },
-  searchInput: {
-    flex: 1,
-    fontFamily: F.regular,
-    fontSize: 14,
-    color: C.text,
-  },
+  searchInput: { flex: 1, fontFamily: F.regular, fontSize: 14, color: C.text },
 
-  filtersScroll: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-    backgroundColor: C.orangeLight,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-  },
+  filtersScroll: { paddingHorizontal: 16, paddingVertical: 14, gap: 8, alignItems: 'center' },
   filterChip: {
     paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingVertical: 8,
     borderRadius: 99,
     borderWidth: 1.5,
     borderColor: C.border,
     backgroundColor: C.surface,
   },
-  filterChipActive: {
-    borderColor: C.orange,
-    backgroundColor: C.orangeLight,
-  },
-  filterChipText: {
-    fontFamily: F.medium,
-    fontSize: 15,
-    color: C.text2,
-  },
-  filterChipTextActive: {
-    color: C.orangeDark,
-  },
-  filterDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: C.border,
-    alignSelf: 'center',
-    marginHorizontal: 4,
-  },
+  filterChipActive: { borderColor: C.orange, backgroundColor: C.orangeLight },
+  filterChipText: { fontFamily: F.medium, fontSize: 13.5, color: C.text2 },
+  filterChipTextActive: { color: C.orangeDark, fontFamily: F.semiBold },
+  filterDivider: { width: 1, height: 22, backgroundColor: C.border, alignSelf: 'center', marginHorizontal: 2 },
 
-  featuredSection: {
-    paddingTop: 20,
-    backgroundColor: C.surface2,
-  },
+  featuredSection: { paddingTop: 6, paddingBottom: 4 },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     marginBottom: 12,
-    marginTop: 4,
+    marginTop: 6,
   },
-  sectionTitle: {
-    fontFamily: F.semiBold,
-    fontSize: 20,
-    color: C.text,
-  },
-  sectionLink: {
-    fontFamily: F.medium,
-    fontSize: 16,
-    color: C.orange,
-  },
-  jobCount: {
-    fontFamily: F.regular,
-    fontSize: 14,
-    color: C.textMuted,
-  },
+  sectionTitle: { fontFamily: F.bold, fontSize: 18, color: C.text },
+  sectionLink: { fontFamily: F.semiBold, fontSize: 13.5, color: C.orange },
+  jobCount: { fontFamily: F.medium, fontSize: 13, color: C.textMuted },
 
-  featuredScroll: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-    gap: 12,
-  },
+  featuredScroll: { paddingHorizontal: 16, paddingBottom: 6, gap: 12 },
   featuredCard: {
     width: FEATURED_CARD_WIDTH,
     backgroundColor: C.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: C.border,
+    borderRadius: 20,
     padding: 18,
     gap: 12,
     shadowColor: '#0d1829',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.07,
+    shadowRadius: 16,
+    elevation: 3,
   },
-  featuredTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  featuredCompany: {
-    fontFamily: F.semiBold,
-    fontSize: 16,
-    color: C.text,
-  },
-  featuredLocation: {
-    fontFamily: F.regular,
-    fontSize: 14,
-    color: C.textMuted,
-    marginTop: 1,
-  },
-  appliedDot: {
-    marginLeft: 'auto',
-  },
-  featuredTitle: {
-    fontFamily: F.bold,
-    fontSize: 18,
-    color: C.text,
-    lineHeight: 22,
-  },
-  featuredBadges: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  featuredFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  featuredSalary: {
-    fontFamily: F.semiBold,
-    fontSize: 18,
-    color: C.orange,
-  },
-  featuredTime: {
-    fontFamily: F.regular,
-    fontSize: 14,
-    color: C.textMuted,
-  },
+  featuredTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  featuredCompany: { fontFamily: F.semiBold, fontSize: 15, color: C.text },
+  featuredLocationRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
+  featuredLocation: { fontFamily: F.regular, fontSize: 12.5, color: C.textMuted },
+  appliedDot: { marginLeft: 'auto' },
+  featuredTitle: { fontFamily: F.bold, fontSize: 17, color: C.text, lineHeight: 22 },
+  featuredBadges: { flexDirection: 'row', gap: 6 },
+  featuredFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
+  featuredSalary: { fontFamily: F.bold, fontSize: 16, color: C.orangeDark },
+  featuredTime: { fontFamily: F.regular, fontSize: 12.5, color: C.textMuted },
 
-  badge: {
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: 99,
-  },
-  badgeText: {
-    fontFamily: F.medium,
-    fontSize: 13,
-  },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 },
+  badgeText: { fontFamily: F.medium, fontSize: 12 },
 
   listItem: {
     flexDirection: 'row',
@@ -686,157 +506,69 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface,
     marginHorizontal: 16,
     marginBottom: 8,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.border,
+    borderRadius: 16,
     padding: 14,
+    shadowColor: '#0d1829',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
   },
-  listItemContent: {
-    flex: 1,
-    gap: 3,
-  },
-  listItemTitle: {
-    fontFamily: F.semiBold,
-    fontSize: 16,
-    color: C.text,
-  },
-  listItemCompany: {
-    fontFamily: F.regular,
-    fontSize: 14,
-    color: C.text2,
-  },
-  listItemMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
-  },
-  listItemSalary: {
-    fontFamily: F.medium,
-    fontSize: 14,
-    color: C.orange,
-  },
-  listItemRight: {
-    alignItems: 'flex-end',
-    gap: 6,
-  },
-  listItemTime: {
-    fontFamily: F.regular,
-    fontSize: 12,
-    color: C.textMuted,
-  },
-
-  companyAvatar: {
-    borderWidth: 1,
+  listItemContent: { flex: 1, gap: 3 },
+  listItemTitle: { fontFamily: F.semiBold, fontSize: 15, color: C.text },
+  listItemCompany: { fontFamily: F.regular, fontSize: 13, color: C.text2 },
+  listItemMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  listItemSalary: { fontFamily: F.semiBold, fontSize: 13, color: C.orangeDark },
+  listItemRight: { alignItems: 'flex-end', gap: 8 },
+  listItemTime: { fontFamily: F.regular, fontSize: 11.5, color: C.textMuted },
+  chevronCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 8,
+    backgroundColor: C.surface2,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  companyAvatarText: {
-    fontFamily: F.bold,
-  },
 
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 32,
-    gap: 8,
+  companyAvatar: { borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  companyAvatarText: { fontFamily: F.bold },
+
+  emptyState: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32, gap: 6 },
+  emptyIconCircle: {
+    width: 64, height: 64, borderRadius: 22, backgroundColor: C.surface,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 6,
   },
-  emptyTitle: {
-    fontFamily: F.semiBold,
-    fontSize: 18,
-    color: C.text,
-    marginTop: 8,
-  },
-  emptySub: {
-    fontFamily: F.regular,
-    fontSize: 16,
-    color: C.text2,
-    textAlign: 'center',
-    lineHeight: 21,
-  },
+  emptyTitle: { fontFamily: F.semiBold, fontSize: 17, color: C.text },
+  emptySub: { fontFamily: F.regular, fontSize: 14, color: C.text2, textAlign: 'center', lineHeight: 20 },
   clearFiltersBtn: {
-    marginTop: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 99,
-    borderWidth: 1.5,
-    borderColor: C.orangeBorder,
-    backgroundColor: C.orangeLight,
+    marginTop: 10, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 99,
+    borderWidth: 1.5, borderColor: C.orangeBorder, backgroundColor: C.orangeLight,
   },
-  clearFiltersBtnText: {
-    fontFamily: F.semiBold,
-    fontSize: 14,
-    color: C.orangeDark,
-  },
-  errorState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 32,
-  },
-  errorTitle: {
-    fontFamily: F.semiBold,
-    fontSize: 18,
-    color: C.text,
-    marginTop: 8,
-  },
-  errorSub: {
-    fontFamily: F.regular,
-    fontSize: 16,
-    color: C.text2,
-    textAlign: 'center',
-  },
-  retryBtn: {
-    marginTop: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: C.orange,
-  },
-  retryBtnText: {
-    fontFamily: F.semiBold,
-    fontSize: 16,
-    color: '#fff',
-  },
+  clearFiltersBtnText: { fontFamily: F.semiBold, fontSize: 13.5, color: C.orangeDark },
 
-  loadMoreSpinner: {
-    paddingVertical: 20,
-    alignItems: 'center',
+  errorState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 32 },
+  errorIconCircle: {
+    width: 64, height: 64, borderRadius: 22, backgroundColor: '#fef2f2',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 6,
   },
-  endText: {
-    fontFamily: F.regular,
-    fontSize: 14,
-    color: C.textMuted,
-    textAlign: 'center',
-    paddingVertical: 20,
+  errorTitle: { fontFamily: F.semiBold, fontSize: 17, color: C.text },
+  errorSub: { fontFamily: F.regular, fontSize: 14, color: C.text2, textAlign: 'center' },
+  retryBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14,
+    paddingHorizontal: 22, paddingVertical: 12, borderRadius: 99, backgroundColor: C.orange,
   },
+  retryBtnText: { fontFamily: F.semiBold, fontSize: 14.5, color: '#fff' },
+
+  loadMoreSpinner: { paddingVertical: 20, alignItems: 'center' },
+  endText: { fontFamily: F.regular, fontSize: 13, color: C.textMuted, textAlign: 'center', paddingVertical: 20 },
 
   skeletonFeatured: {
-    width: FEATURED_CARD_WIDTH,
-    backgroundColor: C.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: C.border,
-    padding: 18,
-    flexDirection: 'row',
-    gap: 12,
-    alignItems: 'flex-start',
+    width: FEATURED_CARD_WIDTH, backgroundColor: C.surface, borderRadius: 20,
+    padding: 18, flexDirection: 'row', gap: 12, alignItems: 'flex-start',
   },
   skeletonList: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: C.surface,
-    marginHorizontal: 16,
-    marginBottom: 8,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.border,
-    padding: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.surface,
+    marginHorizontal: 16, marginBottom: 8, borderRadius: 16, padding: 14,
   },
-  skeletonBox: {
-    backgroundColor: C.border,
-    borderRadius: 6,
-  },
-})
+  skeletonBox: { backgroundColor: C.border, borderRadius: 6 },
+});

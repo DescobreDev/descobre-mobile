@@ -186,7 +186,7 @@ function ApplicationCard({ item }: { item: Application }) {
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.82}
-      onPress={() => router.push(`/(app)/job/${item.id}`)}
+      onPress={() => router.push(`/(app)/job/applicationProcess/${item.id}`)}
     >
       <CompanyAvatar name={item.companyName} size={46} />
       <View style={styles.cardContent}>

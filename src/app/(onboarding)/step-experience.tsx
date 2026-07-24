@@ -20,6 +20,7 @@ import {
 } from '../../components/onboarding/OnboardingHeader';
 import { PrimaryButton } from '../../components/onboarding/PrimaryButton';
 import { useOnboardingStore, OnboardingExperience } from '../../store/onBoardingStore';
+import { MonthYearPicker } from '../../components/onboarding/MouthYearPicker';
 
 
 function emptyExperience(): OnboardingExperience {
@@ -147,30 +148,28 @@ function ExperienceCard({
 
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
-              <Field
-                label="Início"
-                placeholder="MM/AAAA"
-                optional="true"
+              <Text style={styles.fieldLabel}>
+                Início <Text style={styles.fieldOptional}>(opcional)</Text>
+              </Text>
+
+              <MonthYearPicker
                 value={exp.startDate}
-                onChangeText={(v) =>
-                  onChange({ ...exp, startDate: formatMonthYear(v) })
+                onChange={(v) =>
+                  onChange({ ...exp, startDate: v })
                 }
-                keyboardType="number-pad"
-                maxLength={7}
               />
             </View>
             {!exp.current && (
               <View style={{ flex: 1 }}>
-                <Field
-                  label="Término"
-                  placeholder="MM/AAAA"
-                  optional="true"
+                <Text style={styles.fieldLabel}>
+                  Término <Text style={styles.fieldOptional}>(opcional)</Text>
+                </Text>
+
+                <MonthYearPicker
                   value={exp.endDate ?? ''}
-                  onChangeText={(v) =>
-                    onChange({ ...exp, endDate: formatMonthYear(v) })
+                  onChange={(v) =>
+                    onChange({ ...exp, endDate: v })
                   }
-                  keyboardType="number-pad"
-                  maxLength={7}
                 />
               </View>
             )}

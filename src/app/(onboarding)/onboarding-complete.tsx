@@ -263,7 +263,6 @@ export default function OnboardingComplete() {
     ]).start();
   }, []);
 
-  //atualizar var profile completed
   const handleGoHome = () => {
     reset();
     router.replace('/(app)/home');

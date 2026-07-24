@@ -2,6 +2,7 @@ export const ENDPOINTS = {
   auth: {
     register: '/candidate/auth/register',
     login:    '/candidate/auth/login',
+    checkCpf: '/candidate/auth/check-cpf'
   },
 
   onboarding: {

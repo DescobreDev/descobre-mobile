@@ -100,7 +100,6 @@ interface OnboardingState {
   setLanguages: (languages: OnboardingLanguage[]) => void;
   setAvatar: (index: number | null, url: string | null) => void;
 
-  // --- NOVO ---
   setJobPreferences: (payload: {
     desiredSectorId: number | null;
     desiredSectorName: string;

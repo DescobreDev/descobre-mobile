@@ -51,6 +51,21 @@ const EXPERIENCE_LEVELS: { value: ExperienceLevel; label: string }[] = [
   { value: 'ESPECIALISTA', label: 'Especialista' },
 ];
 
+interface SalaryRange {
+  id: string;
+  label: string;
+  min: string;
+  max: string | null;
+}
+
+const SALARY_RANGES: SalaryRange[] = [
+  { id: 'r1', label: 'Até R$ 1.500', min: '0', max: '1500' },
+  { id: 'r2', label: 'R$ 1.500 - R$ 3.000', min: '1500', max: '3000' },
+  { id: 'r3', label: 'R$ 3.000 - R$ 5.000', min: '3000', max: '5000' },
+  { id: 'r4', label: 'R$ 5.000 - R$ 8.000', min: '5000', max: '8000' },
+  { id: 'r5', label: 'Acima de R$ 8.000', min: '8000', max: null },
+];
+
 interface ChipProps {
   label: string;
   selected: boolean;
@@ -78,7 +93,6 @@ function Chip({ label, selected, onPress }: ChipProps) {
   );
 }
 
-// Autocomplete genérico: digita, filtra via API com debounce, seleciona da lista.
 interface SearchSelectProps {
   label: string;
   placeholder: string;
@@ -210,10 +224,16 @@ export default function StepJobPreferences() {
       : null
   );
 
-  const [salaryMin, setSalaryMin] = useState(data.salaryMin);
-  const [salaryMax, setSalaryMax] = useState(data.salaryMax);
   const [salaryNegotiable, setSalaryNegotiable] = useState(
     data.salaryNegotiable
+  );
+
+  const initialRange = SALARY_RANGES.find(
+    (r) => r.min === data.salaryMin && (r.max ?? '') === (data.salaryMax ?? '')
+  );
+
+  const [selectedRangeId, setSelectedRangeId] = useState<string | null>(
+    initialRange?.id ?? null
   );
 
   const [selectedContractTypes, setSelectedContractTypes] = useState<
@@ -245,7 +265,6 @@ export default function StepJobPreferences() {
 
   const handleSelectSector = (item: SearchOption | null) => {
     setSelectedSector(item);
-    // trocar/limpar o setor invalida a posição escolhida anteriormente
     setSelectedPosition(null);
   };
 
@@ -255,6 +274,18 @@ export default function StepJobPreferences() {
         ? prev.filter((item) => item !== value)
         : [...prev, value]
     );
+  };
+
+  const handleSelectRange = (rangeId: string) => {
+    setSelectedRangeId((prev) => (prev === rangeId ? null : rangeId));
+  };
+
+  const handleToggleNegotiable = () => {
+    setSalaryNegotiable((prev) => {
+      const next = !prev;
+      if (next) setSelectedRangeId(null);
+      return next;
+    });
   };
 
   const canAdvance =
@@ -267,14 +298,16 @@ export default function StepJobPreferences() {
   const handleNext = async () => {
     setSaving(true);
 
+    const selectedRange = SALARY_RANGES.find((r) => r.id === selectedRangeId);
+
     try {
       setJobPreferences({
         desiredSectorId: selectedSector?.id ?? null,
         desiredSectorName: selectedSector?.name ?? '',
         desiredPositionId: selectedPosition?.id ?? null,
         desiredPositionName: selectedPosition?.name ?? '',
-        salaryMin,
-        salaryMax,
+        salaryMin: selectedRange?.min ?? '',
+        salaryMax: selectedRange?.max ?? '',
         salaryNegotiable,
         contractTypes: selectedContractTypes,
         experienceLevel: selectedLevel,
@@ -309,7 +342,7 @@ export default function StepJobPreferences() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Cargo desejado (Setor -> Posição, busca com filtro) */}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Cargo desejado</Text>
 
@@ -335,36 +368,19 @@ export default function StepJobPreferences() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Pretensão salarial</Text>
 
-          <View style={styles.salaryRow}>
-            <View style={styles.salaryInputWrapper}>
-              <Text style={styles.fieldLabel}>Mínimo (R$)</Text>
-              <TextInput
-                value={salaryMin}
-                onChangeText={setSalaryMin}
-                keyboardType="numeric"
-                placeholder="Ex: 2500"
-                placeholderTextColor={COLORS.textMuted}
-                style={styles.input}
-                editable={!salaryNegotiable}
+          <View style={[styles.chipsRow, salaryNegotiable && styles.chipsRowDisabled]}>
+            {SALARY_RANGES.map((range) => (
+              <Chip
+                key={range.id}
+                label={range.label}
+                selected={selectedRangeId === range.id}
+                onPress={() => !salaryNegotiable && handleSelectRange(range.id)}
               />
-            </View>
-
-            <View style={styles.salaryInputWrapper}>
-              <Text style={styles.fieldLabel}>Máximo (R$)</Text>
-              <TextInput
-                value={salaryMax}
-                onChangeText={setSalaryMax}
-                keyboardType="numeric"
-                placeholder="Ex: 4000"
-                placeholderTextColor={COLORS.textMuted}
-                style={styles.input}
-                editable={!salaryNegotiable}
-              />
-            </View>
+            ))}
           </View>
 
           <TouchableOpacity
-            onPress={() => setSalaryNegotiable((prev) => !prev)}
+            onPress={handleToggleNegotiable}
             activeOpacity={0.75}
             style={styles.negotiableRow}
             accessibilityRole="checkbox"
@@ -379,7 +395,6 @@ export default function StepJobPreferences() {
           </TouchableOpacity>
         </View>
 
-        {/* Regimes aceitos */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Regimes aceitos</Text>
           <View style={styles.chipsRow}>
@@ -394,7 +409,6 @@ export default function StepJobPreferences() {
           </View>
         </View>
 
-        {/* Nível profissional */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Nível profissional</Text>
           <View style={styles.chipsRow}>
@@ -409,7 +423,6 @@ export default function StepJobPreferences() {
           </View>
         </View>
 
-        {/* Aceita viagens */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Aceita viagens a trabalho?</Text>
           <View style={styles.chipsRow}>
@@ -484,6 +497,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginBottom: SPACING.sm,
+  },
+
+  chipsRowDisabled: {
+    opacity: 0.4,
   },
 
   chip: {
@@ -574,16 +592,6 @@ const styles = StyleSheet.create({
     fontFamily: FONT.semiBold,
     fontSize: 15,
     color: COLORS.orangeDark,
-    flex: 1,
-  },
-
-  salaryRow: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    marginBottom: SPACING.sm,
-  },
-
-  salaryInputWrapper: {
     flex: 1,
   },
 

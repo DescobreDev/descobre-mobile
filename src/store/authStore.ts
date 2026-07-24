@@ -17,7 +17,13 @@ interface AuthState {
   isLoading: boolean;
 
   loadFromStorage: () => Promise<void>;
-  register: (data: { cpf: string; password: string }) => Promise<{ name: string }>;
+  checkCpf: (cpf: string) => Promise<{ name: string; birthDate: string | null }>;
+  register: (data: {
+    cpf: string;
+    password: string;
+    name: string;
+    birthDate?: string | null;
+  }) => Promise<{ name: string }>;
   login: (data: { cpf: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   setProfileCompleted: () => void;
@@ -42,6 +48,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch {
       await SecureStore.deleteItemAsync('candidate_token');
       set({ token: '', candidate: null });
+    }
+  },
+
+  checkCpf: async (cpf) => {
+    set({ isLoading: true });
+    try {
+      const { data } = await api.post(ENDPOINTS.auth.checkCpf, { cpf });
+      return { name: data.name, birthDate: data.birthDate ?? null };
+    } finally {
+      set({ isLoading: false });
     }
   },
 
