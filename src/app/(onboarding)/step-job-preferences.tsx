@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   TextInput,
   StyleSheet,
   SafeAreaView,
-  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +19,7 @@ import {
 } from '../../components/onboarding/OnboardingHeader';
 
 import { PrimaryButton } from '../../components/onboarding/PrimaryButton';
+import { SearchSelect, SearchOption } from '../../components/shared/SearchSelect';
 
 import {
   useOnboardingStore,
@@ -29,13 +29,6 @@ import {
 
 import api from '../../services/api';
 import { ENDPOINTS } from '../../constants/endpoints';
-
-const SEARCH_DEBOUNCE_MS = 300;
-
-interface SearchOption {
-  id: number;
-  name: string;
-}
 
 const CONTRACT_TYPES: { value: ContractType; label: string }[] = [
   { value: 'CLT', label: 'CLT' },
@@ -93,112 +86,12 @@ function Chip({ label, selected, onPress }: ChipProps) {
   );
 }
 
-interface SearchSelectProps {
-  label: string;
-  placeholder: string;
-  value: SearchOption | null;
-  onSelect: (item: SearchOption | null) => void;
-  fetchOptions: (query: string) => Promise<SearchOption[]>;
-}
-
-function SearchSelect({
-  label,
-  placeholder,
-  value,
-  onSelect,
-  fetchOptions,
-}: SearchSelectProps) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchOption[]>([]);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-
-    setLoading(true);
-
-    const timeout = setTimeout(async () => {
-      try {
-        const options = await fetchOptions(query);
-        setResults(options);
-      } catch {
-        setResults([]);
-      } finally {
-        setLoading(false);
-      }
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeout);
-  }, [query, open]);
-
-  if (value) {
-    return (
-      <View style={styles.fieldBlock}>
-        <Text style={styles.fieldLabel}>{label}</Text>
-        <View style={styles.selectedRow}>
-          <Text style={styles.selectedText}>{value.name}</Text>
-          <TouchableOpacity
-            onPress={() => {
-              onSelect(null);
-              setQuery('');
-              setResults([]);
-            }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.fieldBlock}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-
-      <TextInput
-        value={query}
-        onChangeText={(text) => {
-          setQuery(text);
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        placeholder={placeholder}
-        placeholderTextColor={COLORS.textMuted}
-        style={styles.input}
-      />
-
-      {open && (
-        <View style={styles.dropdown}>
-          {loading ? (
-            <ActivityIndicator
-              size="small"
-              color={COLORS.orange}
-              style={styles.dropdownLoading}
-            />
-          ) : results.length === 0 ? (
-            <Text style={styles.dropdownEmpty}>Nenhum resultado</Text>
-          ) : (
-            results.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.dropdownItem}
-                onPress={() => {
-                  onSelect(item);
-                  setOpen(false);
-                  setQuery('');
-                }}
-              >
-                <Text style={styles.dropdownItemText}>{item.name}</Text>
-              </TouchableOpacity>
-            ))
-          )}
-        </View>
-      )}
-    </View>
-  );
-}
+// UF válidas do Brasil, pra validar o campo sem depender de uma chamada de API.
+const VALID_UFS = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
+  'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
+  'SP', 'SE', 'TO',
+];
 
 export default function StepJobPreferences() {
   const router = useRouter();
@@ -248,6 +141,11 @@ export default function StepJobPreferences() {
     data.acceptsTravel
   );
 
+  // NOTA: `city`/`state` ainda não existem no tipo `OnboardingData` da store — usando
+  // fallback defensivo até a store ser atualizada (ver observação no chat).
+  const [city, setCity] = useState<string>((data as any).city ?? '');
+  const [uf, setUf] = useState<string>((data as any).state ?? '');
+
   const [saving, setSaving] = useState(false);
 
   const fetchSectors = async (query: string): Promise<SearchOption[]> => {
@@ -288,12 +186,16 @@ export default function StepJobPreferences() {
     });
   };
 
+  const normalizedUf = uf.trim().toUpperCase();
+  const ufIsValid = normalizedUf.length === 0 || VALID_UFS.includes(normalizedUf);
+
   const canAdvance =
     !!selectedSector &&
     !!selectedPosition &&
     selectedContractTypes.length > 0 &&
     !!selectedLevel &&
-    acceptsTravel !== null;
+    acceptsTravel !== null &&
+    ufIsValid;
 
   const handleNext = async () => {
     setSaving(true);
@@ -312,7 +214,10 @@ export default function StepJobPreferences() {
         contractTypes: selectedContractTypes,
         experienceLevel: selectedLevel,
         acceptsTravel,
-      });
+        // TODO: incluir no tipo OnboardingData assim que a store for atualizada
+        city: city.trim() || null,
+        state: normalizedUf || null,
+      } as any);
 
       nextStep();
 
@@ -363,6 +268,44 @@ export default function StepJobPreferences() {
               fetchOptions={fetchPositions}
             />
           )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Onde você está?</Text>
+
+          <View style={styles.locationRow}>
+            <View style={[styles.fieldBlock, { flex: 2, marginBottom: 0 }]}>
+              <Text style={styles.fieldLabel}>Cidade</Text>
+              <TextInput
+                value={city}
+                onChangeText={setCity}
+                placeholder="Ex: São Paulo"
+                placeholderTextColor={COLORS.textMuted}
+                style={styles.input}
+              />
+            </View>
+
+            <View style={[styles.fieldBlock, { flex: 1, marginBottom: 0 }]}>
+              <Text style={styles.fieldLabel}>UF</Text>
+              <TextInput
+                value={uf}
+                onChangeText={(v) => setUf(v.toUpperCase())}
+                placeholder="SP"
+                placeholderTextColor={COLORS.textMuted}
+                maxLength={2}
+                autoCapitalize="characters"
+                style={[styles.input, !ufIsValid && styles.inputError]}
+              />
+            </View>
+          </View>
+
+          {!ufIsValid && (
+            <Text style={styles.fieldError}>UF inválida</Text>
+          )}
+
+          <Text style={styles.fieldHint}>
+            Usamos isso pra já filtrar as vagas mais próximas de você — pode mudar depois nos filtros.
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -493,6 +436,26 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
 
+  fieldHint: {
+    fontFamily: FONT.regular,
+    fontSize: 12.5,
+    color: COLORS.textMuted,
+    marginTop: 8,
+    lineHeight: 17,
+  },
+
+  fieldError: {
+    fontFamily: FONT.medium,
+    fontSize: 12.5,
+    color: '#ef4444',
+    marginTop: 6,
+  },
+
+  locationRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+
   chipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -542,57 +505,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
 
-  dropdown: {
-    marginTop: 6,
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    maxHeight: 180,
-    overflow: 'hidden',
-  },
-
-  dropdownLoading: {
-    paddingVertical: 12,
-  },
-
-  dropdownEmpty: {
-    fontFamily: FONT.regular,
-    fontSize: 14,
-    color: COLORS.textMuted,
-    padding: 12,
-    textAlign: 'center',
-  },
-
-  dropdownItem: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-
-  dropdownItemText: {
-    fontFamily: FONT.medium,
-    fontSize: 15,
-    color: COLORS.text,
-  },
-
-  selectedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1.5,
-    borderColor: COLORS.orange,
-    backgroundColor: COLORS.orangeLight,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-
-  selectedText: {
-    fontFamily: FONT.semiBold,
-    fontSize: 15,
-    color: COLORS.orangeDark,
-    flex: 1,
+  inputError: {
+    borderColor: '#ef4444',
   },
 
   negotiableRow: {

@@ -17,27 +17,31 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/authStore';
 import { useJobs } from '../../hooks/useJobs';
+import { AdvancedFiltersModal } from '../../components/filters/AdvancedFiltersModal';
 import { JobListItem, WorkFormat, ContractType } from '../../types/jobs';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const FEATURED_CARD_WIDTH = SCREEN_WIDTH * 0.78;
+const FEATURED_CARD_WIDTH = SCREEN_WIDTH * 0.8;
+
+const MIN_TOUCH_TARGET = 48;
 
 const C = {
   orange: '#f97316',
-  orangeDark: '#ea580c',
+  orangeDark: '#c2410c',
   orangeLight: '#fff7ed',
-  orangeBorder: 'rgba(249,115,22,0.25)',
+  orangeBorder: 'rgba(249,115,22,0.35)',
   text: '#0d1829',
-  text2: '#5a6a82',
-  textMuted: '#aab4c4',
+  text2: '#3d4a5c',
+  textMuted: '#6b7684',
   surface: '#ffffff',
-  surface2: '#f8fafc',
-  border: '#eef1f6',
-  green: '#10b981',
+  surface2: '#f4f6f9',
+  border: '#e4e9f0',
+  green: '#059669',
   greenLight: '#ecfdf5',
-  indigo: '#6366f1',
+  indigo: '#4f46e5',
   indigoLight: '#eef2ff',
-  red: '#ef4444',
+  red: '#dc2626',
+  redLight: '#fef2f2',
 };
 
 const F = {
@@ -47,16 +51,12 @@ const F = {
   bold: 'Poppins_700Bold',
 };
 
-const FORMAT_LABELS: Record<WorkFormat, string> = {
-  REMOTE: 'Remoto',
-  HYBRID: 'Híbrido',
-  ONSITE: 'Presencial',
-};
-
-const FORMAT_COLORS: Record<WorkFormat, { bg: string; text: string }> = {
-  REMOTE: { bg: C.greenLight, text: C.green },
-  HYBRID: { bg: C.indigoLight, text: C.indigo },
-  ONSITE: { bg: C.orangeLight, text: C.orangeDark },
+// Ícone + cor + texto juntos: nunca depender só da cor para transmitir informação.
+// Ajuda quem tem dificuldade de leitura e também daltônicos.
+const FORMAT_CONFIG: Record<WorkFormat, { label: string; icon: keyof typeof Ionicons.glyphMap; bg: string; text: string }> = {
+  REMOTE: { label: 'Remoto', icon: 'home-outline', bg: C.greenLight, text: C.green },
+  HYBRID: { label: 'Híbrido', icon: 'swap-horizontal-outline', bg: C.indigoLight, text: C.indigo },
+  ONSITE: { label: 'Presencial', icon: 'business-outline', bg: C.orangeLight, text: C.orangeDark },
 };
 
 const CONTRACT_LABELS: Record<ContractType, string> = {
@@ -85,16 +85,17 @@ function initials(name: string): string {
 }
 
 function FormatBadge({ format }: { format: WorkFormat }) {
-  const color = FORMAT_COLORS[format];
+  const cfg = FORMAT_CONFIG[format];
   return (
-    <View style={[styles.badge, { backgroundColor: color.bg }]}>
-      <Text style={[styles.badgeText, { color: color.text }]}>{FORMAT_LABELS[format]}</Text>
+    <View style={[styles.badge, { backgroundColor: cfg.bg }]}>
+      <Ionicons name={cfg.icon} size={13} color={cfg.text} />
+      <Text style={[styles.badgeText, { color: cfg.text }]}>{cfg.label}</Text>
     </View>
   );
 }
 
-function CompanyAvatar({ name, size = 44 }: { name: string; size?: number }) {
-  const colors = ['#f97316', '#6366f1', '#10b981', '#ec4899', '#f59e0b', '#3b82f6'];
+function CompanyAvatar({ name, size = 46 }: { name: string; size?: number }) {
+  const colors = ['#c2410c', '#4338ca', '#059669', '#be185d', '#b45309', '#1d4ed8'];
   const colorIndex = name.charCodeAt(0) % colors.length;
   return (
     <View
@@ -118,13 +119,13 @@ function CompanyAvatar({ name, size = 44 }: { name: string; size?: number }) {
 
 function FeaturedCard({ job, onPress }: { job: JobListItem; onPress: () => void }) {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.featuredCard} activeOpacity={0.9}>
+    <TouchableOpacity onPress={onPress} style={styles.featuredCard} activeOpacity={0.85}>
       <View style={styles.featuredTop}>
-        <CompanyAvatar name={job.company.name} size={46} />
+        <CompanyAvatar name={job.company.name} size={48} />
         <View style={{ flex: 1 }}>
           <Text style={styles.featuredCompany} numberOfLines={1}>{job.company.name}</Text>
           <View style={styles.featuredLocationRow}>
-            <Ionicons name="location-outline" size={12} color={C.textMuted} />
+            <Ionicons name="location-outline" size={13} color={C.text2} />
             <Text style={styles.featuredLocation} numberOfLines={1}>
               {job.city && job.state
                 ? `${job.city}, ${job.state}`
@@ -135,8 +136,9 @@ function FeaturedCard({ job, onPress }: { job: JobListItem; onPress: () => void 
           </View>
         </View>
         {job.alreadyApplied && (
-          <View style={styles.appliedDot}>
-            <Ionicons name="checkmark-circle" size={20} color={C.green} />
+          <View style={styles.appliedPill}>
+            <Ionicons name="checkmark-circle" size={16} color={C.green} />
+            <Text style={styles.appliedPillText}>Inscrito</Text>
           </View>
         )}
       </View>
@@ -160,8 +162,8 @@ function FeaturedCard({ job, onPress }: { job: JobListItem; onPress: () => void 
 
 function JobListItemCard({ job, onPress }: { job: JobListItem; onPress: () => void }) {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.listItem} activeOpacity={0.85}>
-      <CompanyAvatar name={job.company.name} size={46} />
+    <TouchableOpacity onPress={onPress} style={styles.listItem} activeOpacity={0.8}>
+      <CompanyAvatar name={job.company.name} size={48} />
       <View style={styles.listItemContent}>
         <Text style={styles.listItemTitle} numberOfLines={1}>{job.title}</Text>
         <Text style={styles.listItemCompany} numberOfLines={1}>{job.company.name}</Text>
@@ -173,10 +175,12 @@ function JobListItemCard({ job, onPress }: { job: JobListItem; onPress: () => vo
       <View style={styles.listItemRight}>
         <Text style={styles.listItemTime}>{timeAgo(job.createdAt)}</Text>
         {job.alreadyApplied ? (
-          <Ionicons name="checkmark-circle" size={18} color={C.green} />
+          <View style={styles.appliedDotSmall}>
+            <Ionicons name="checkmark-circle" size={22} color={C.green} />
+          </View>
         ) : (
           <View style={styles.chevronCircle}>
-            <Ionicons name="chevron-forward" size={14} color={C.textMuted} />
+            <Ionicons name="chevron-forward" size={16} color={C.text2} />
           </View>
         )}
       </View>
@@ -186,7 +190,14 @@ function JobListItemCard({ job, onPress }: { job: JobListItem; onPress: () => vo
 
 function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
-    <TouchableOpacity onPress={onPress} style={[styles.filterChip, active && styles.filterChipActive]} activeOpacity={0.8}>
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.filterChip, active && styles.filterChipActive]}
+      activeOpacity={0.8}
+      // hitSlop garante área de toque confortável mesmo com o chip visualmente compacto
+      hitSlop={{ top: 6, bottom: 6, left: 2, right: 2 }}
+    >
+      {active && <Ionicons name="checkmark" size={15} color="#fff" style={{ marginRight: 4 }} />}
       <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>{label}</Text>
     </TouchableOpacity>
   );
@@ -195,11 +206,11 @@ function FilterChip({ label, active, onPress }: { label: string; active: boolean
 function SkeletonCard({ featured = false }: { featured?: boolean }) {
   return (
     <View style={featured ? styles.skeletonFeatured : styles.skeletonList}>
-      <View style={[styles.skeletonBox, { width: 46, height: 46, borderRadius: 12 }]} />
+      <View style={[styles.skeletonBox, { width: 48, height: 48, borderRadius: 12 }]} />
       <View style={{ flex: 1, gap: 8 }}>
-        <View style={[styles.skeletonBox, { height: 14, width: '70%' }]} />
-        <View style={[styles.skeletonBox, { height: 12, width: '45%' }]} />
-        {featured && <View style={[styles.skeletonBox, { height: 12, width: '55%' }]} />}
+        <View style={[styles.skeletonBox, { height: 15, width: '70%' }]} />
+        <View style={[styles.skeletonBox, { height: 13, width: '45%' }]} />
+        {featured && <View style={[styles.skeletonBox, { height: 13, width: '55%' }]} />}
       </View>
     </View>
   );
@@ -211,10 +222,11 @@ export default function HomeScreen() {
   const { candidate } = useAuthStore();
   const {
     jobs, featured, isLoading, isLoadingMore, hasMore, error,
-    filters, setFilters, loadMore, refresh,
+    filters, setFilters, activeFilterCount, resetFilters, loadMore, refresh,
   } = useJobs();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -243,28 +255,62 @@ export default function HomeScreen() {
     <View>
       <View style={styles.searchSection}>
         <View style={styles.searchBox}>
-          <Ionicons name="search-outline" size={18} color={C.textMuted} />
+          <Ionicons name="search-outline" size={20} color={C.text2} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar vagas, empresas..."
+            placeholder="Buscar vaga ou empresa"
             placeholderTextColor={C.textMuted}
             value={filters.search}
             onChangeText={(v) => setFilters({ search: v })}
             returnKeyType="search"
           />
           {filters.search.length > 0 && (
-            <TouchableOpacity onPress={() => setFilters({ search: '' })} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Ionicons name="close-circle" size={18} color={C.textMuted} />
+            <TouchableOpacity onPress={() => setFilters({ search: '' })} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close-circle" size={20} color={C.textMuted} />
             </TouchableOpacity>
           )}
         </View>
+
+        <TouchableOpacity
+          onPress={() => setShowAdvancedFilters(true)}
+          style={[styles.advancedFilterBtn, activeFilterCount > 0 && styles.advancedFilterBtnActive]}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="options-outline" size={22} color={activeFilterCount > 0 ? '#fff' : C.text2} />
+          {activeFilterCount > 0 && (
+            <View style={styles.advancedFilterBadge}>
+              <Text style={styles.advancedFilterBadgeText}>{activeFilterCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
-        {FORMAT_FILTERS.map((f) => (
-          <FilterChip key={f.label} label={f.label} active={filters.workFormat === f.value} onPress={() => setFilters({ workFormat: f.value })} />
-        ))}
-        <View style={styles.filterDivider} />
+      {/*
+        Antes isso era um ScrollView horizontal — em telas estreitas o último
+        chip ficava cortado pela metade, parecendo bug. Um segmented control
+        de largura fixa (4 partes iguais) sempre mostra tudo de uma vez.
+      */}
+      <View style={styles.segmentedControl}>
+        {FORMAT_FILTERS.map((f) => {
+          const active = filters.workFormat === f.value;
+          return (
+            <TouchableOpacity
+              key={f.label}
+              onPress={() => setFilters({ workFormat: f.value })}
+              style={[styles.segment, active && styles.segmentActive]}
+              activeOpacity={0.75}
+            >
+              <Text style={[styles.segmentText, active && styles.segmentTextActive]} numberOfLines={1}>
+                {f.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* flexWrap em vez de scroll: se não couber numa linha, quebra pra segunda — nunca corta. */}
+      <View style={styles.contractFilterRow}>
+        <Text style={styles.contractFilterLabel}>Contrato</Text>
         {CONTRACT_FILTERS.map((f) => (
           <FilterChip
             key={f.label}
@@ -273,13 +319,13 @@ export default function HomeScreen() {
             onPress={() => setFilters({ contractType: filters.contractType === f.value ? null : f.value })}
           />
         ))}
-      </ScrollView>
+      </View>
 
       {!isLoading && featured.length > 0 && (
         <View style={styles.featuredSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Em destaque</Text>
-            <TouchableOpacity>
+            <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Text style={styles.sectionLink}>Ver todas</Text>
             </TouchableOpacity>
           </View>
@@ -300,7 +346,7 @@ export default function HomeScreen() {
 
       {isLoading && (
         <View style={styles.featuredSection}>
-          <View style={[styles.skeletonBox, { height: 16, width: 120, marginBottom: 14, marginLeft: 16 }]} />
+          <View style={[styles.skeletonBox, { height: 18, width: 130, marginBottom: 14, marginLeft: 16 }]} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.featuredScroll}>
             {[0, 1].map((i) => <SkeletonCard key={i} featured />)}
           </ScrollView>
@@ -309,9 +355,13 @@ export default function HomeScreen() {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          {filters.search || filters.workFormat || filters.contractType ? 'Resultados' : 'Todas as vagas'}
+          {filters.search || filters.workFormat || filters.contractType || activeFilterCount > 0 ? 'Resultados' : 'Todas as vagas'}
         </Text>
-        {!isLoading && <Text style={styles.jobCount}>{jobs.length} vagas</Text>}
+        {!isLoading && (
+          <View style={styles.jobCountPill}>
+            <Text style={styles.jobCountText}>{jobs.length} vagas</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -321,13 +371,13 @@ export default function HomeScreen() {
       <View style={[styles.safe, { paddingTop: insets.top }]}>
         <View style={styles.errorState}>
           <View style={styles.errorIconCircle}>
-            <Ionicons name="cloud-offline-outline" size={32} color={C.red} />
+            <Ionicons name="cloud-offline-outline" size={36} color={C.red} />
           </View>
-          <Text style={styles.errorTitle}>Algo deu errado</Text>
+          <Text style={styles.errorTitle}>Não foi possível carregar</Text>
           <Text style={styles.errorSub}>{error}</Text>
           <TouchableOpacity onPress={refresh} style={styles.retryBtn} activeOpacity={0.85}>
-            <Ionicons name="refresh" size={16} color="#fff" />
-            <Text style={styles.retryBtnText}>Tentar novamente</Text>
+            <Ionicons name="refresh" size={18} color="#fff" />
+            <Text style={styles.retryBtnText}>Tentar de novo</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -336,23 +386,25 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.safe, { paddingTop: insets.top }]}>
-      <LinearGradient colors={[C.orange, C.orangeDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
-        <View style={styles.headerBlob} />
-        <View>
-          <Text style={styles.headerGreeting}>Olá, {firstName}</Text>
-          <Text style={styles.headerSub}>Descubra sua próxima oportunidade</Text>
-        </View>
-        <TouchableOpacity onPress={() => router.push('/(app)/profile')} style={styles.avatarBtn} activeOpacity={0.85}>
-          <Text style={styles.avatarBtnText}>{firstName[0]}</Text>
-        </TouchableOpacity>
-      </LinearGradient>
+      <View style={styles.headerShadowWrap}>
+        <LinearGradient colors={[C.orange, C.orangeDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
+          <View style={{ flexShrink: 1 }}>
+            <Text style={styles.headerGreeting} numberOfLines={1}>Olá, {firstName}</Text>
+            <Text style={styles.headerSub}>Encontre sua próxima vaga</Text>
+          </View>
+          <TouchableOpacity onPress={() => router.push('/(app)/profile')} style={styles.avatarBtn} activeOpacity={0.85}>
+            <Text style={styles.avatarBtnText}>{firstName[0]}</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </View>
 
       <FlatList
+        style={styles.list}
         data={isLoading ? [] : jobs}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <JobListItemCard job={item} onPress={() => goToJob(item.id)} />}
         ListHeaderComponent={ListHeader}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: 24 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={C.orange} colors={[C.orange]} />}
         onEndReached={loadMore}
@@ -372,12 +424,15 @@ export default function HomeScreen() {
           ) : (
             <View style={styles.emptyState}>
               <View style={styles.emptyIconCircle}>
-                <Ionicons name="search-outline" size={32} color={C.textMuted} />
+                <Ionicons name="search-outline" size={36} color={C.text2} />
               </View>
               <Text style={styles.emptyTitle}>Nenhuma vaga encontrada</Text>
-              <Text style={styles.emptySub}>Tente ajustar os filtros ou buscar por outro termo.</Text>
+              <Text style={styles.emptySub}>Tente buscar outra palavra ou limpar os filtros.</Text>
               <TouchableOpacity
-                onPress={() => setFilters({ search: '', workFormat: null, contractType: null })}
+                onPress={() => {
+                  setFilters({ search: '', workFormat: null, contractType: null });
+                  resetFilters();
+                }}
                 style={styles.clearFiltersBtn}
                 activeOpacity={0.85}
               >
@@ -387,77 +442,171 @@ export default function HomeScreen() {
           )
         }
       />
+
+      <AdvancedFiltersModal
+        visible={showAdvancedFilters}
+        onClose={() => setShowAdvancedFilters(false)}
+        filters={filters}
+        onApply={setFilters}
+        onReset={() =>
+          setFilters({
+            sectorId: null,
+            positionId: null,
+            jobType: null,
+            experienceLevel: null,
+            affirmative: null,
+            benefitIds: [],
+            salaryMin: null,
+            salaryMax: null,
+            city: null,
+            state: null,
+          })
+        }
+        candidateLocation={{ city: candidate?.city, state: candidate?.state }}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 0, backgroundColor: C.surface2 },
+  safe: { flex: 1, backgroundColor: C.surface2 },
 
+  headerShadowWrap: {
+    shadowColor: '#0d1829',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
+    elevation: 6,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: 22,
+    paddingBottom: 20,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
     overflow: 'hidden',
   },
-  headerBlob: {
-    position: 'absolute',
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    top: -80,
-    right: -40,
-  },
   headerGreeting: { fontFamily: F.bold, fontSize: 22, color: '#fff' },
-  headerSub: { fontFamily: F.regular, fontSize: 13.5, color: 'rgba(255,255,255,0.88)', marginTop: 2 },
+  headerSub: { fontFamily: F.regular, fontSize: 14, color: 'rgba(255,255,255,0.92)', marginTop: 2 },
   avatarBtn: {
-    width: 42,
-    height: 42,
+    width: MIN_TOUCH_TARGET,
+    height: MIN_TOUCH_TARGET,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.22)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarBtnText: { fontFamily: F.bold, fontSize: 17, color: '#fff' },
+  avatarBtnText: { fontFamily: F.bold, fontSize: 18, color: '#fff' },
 
+  // KEY FIX: flex:1 é o que faz a lista ocupar corretamente todo o espaço
+  // restante abaixo do header, em vez de colapsar/sobrepor o conteúdo.
+  list: { flex: 1 },
   listContent: { paddingBottom: 24 },
 
-  searchSection: { paddingHorizontal: 16, marginTop: -18, marginBottom: 4 },
+  searchSection: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, marginTop: 16, marginBottom: 4 },
   searchBox: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     backgroundColor: C.surface,
     borderRadius: 14,
     paddingHorizontal: 14,
-    height: 50,
+    height: MIN_TOUCH_TARGET + 4,
     shadowColor: '#0d1829',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 14,
     elevation: 4,
   },
-  searchInput: { flex: 1, fontFamily: F.regular, fontSize: 14, color: C.text },
+  searchInput: { flex: 1, fontFamily: F.regular, fontSize: 15, color: C.text },
 
-  filtersScroll: { paddingHorizontal: 16, paddingVertical: 14, gap: 8, alignItems: 'center' },
+  advancedFilterBtn: {
+    width: MIN_TOUCH_TARGET + 4,
+    height: MIN_TOUCH_TARGET + 4,
+    borderRadius: 14,
+    backgroundColor: C.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0d1829',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    elevation: 4,
+  },
+  advancedFilterBtnActive: { backgroundColor: C.orange },
+  advancedFilterBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 4,
+    backgroundColor: C.text,
+    borderWidth: 2,
+    borderColor: C.surface2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  advancedFilterBadgeText: { fontFamily: F.bold, fontSize: 11, color: '#fff' },
+
+  // Segmented control: substitui o antigo ScrollView horizontal. Largura
+  // fixa dividida em 4 partes iguais — nada fica escondido fora da tela.
+  segmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: C.surface2,
+    borderRadius: 14,
+    padding: 4,
+    marginHorizontal: 16,
+    marginTop: 18,
+    gap: 4,
+  },
+  segment: {
+    flex: 1,
+    height: MIN_TOUCH_TARGET - 6,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  segmentActive: {
+    backgroundColor: C.surface,
+    shadowColor: '#0d1829',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  segmentText: { fontFamily: F.medium, fontSize: 12.5, color: C.text2 },
+  segmentTextActive: { fontFamily: F.semiBold, fontSize: 12.5, color: C.orangeDark },
+
+  // flexWrap: se "Freelancer" não couber na linha, quebra pra próxima — nunca corta.
+  contractFilterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    marginTop: 14,
+    marginBottom: 4,
+  },
+  contractFilterLabel: { fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginRight: 2 },
   filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    height: MIN_TOUCH_TARGET - 6, // ~42px + hitSlop cobre o restante até 48
     borderRadius: 99,
     borderWidth: 1.5,
     borderColor: C.border,
     backgroundColor: C.surface,
   },
-  filterChipActive: { borderColor: C.orange, backgroundColor: C.orangeLight },
-  filterChipText: { fontFamily: F.medium, fontSize: 13.5, color: C.text2 },
-  filterChipTextActive: { color: C.orangeDark, fontFamily: F.semiBold },
-  filterDivider: { width: 1, height: 22, backgroundColor: C.border, alignSelf: 'center', marginHorizontal: 2 },
+  filterChipActive: { borderColor: C.orange, backgroundColor: C.orange },
+  filterChipText: { fontFamily: F.medium, fontSize: 14, color: C.text2 },
+  filterChipTextActive: { color: '#fff', fontFamily: F.semiBold },
 
   featuredSection: { paddingTop: 6, paddingBottom: 4 },
   sectionHeader: {
@@ -469,8 +618,16 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   sectionTitle: { fontFamily: F.bold, fontSize: 18, color: C.text },
-  sectionLink: { fontFamily: F.semiBold, fontSize: 13.5, color: C.orange },
-  jobCount: { fontFamily: F.medium, fontSize: 13, color: C.textMuted },
+  sectionLink: { fontFamily: F.semiBold, fontSize: 14, color: C.orangeDark },
+  jobCountPill: {
+    backgroundColor: C.surface,
+    borderRadius: 99,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  jobCountText: { fontFamily: F.semiBold, fontSize: 12, color: C.text2 },
 
   featuredScroll: { paddingHorizontal: 16, paddingBottom: 6, gap: 12 },
   featuredCard: {
@@ -481,23 +638,27 @@ const styles = StyleSheet.create({
     gap: 12,
     shadowColor: '#0d1829',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.07,
+    shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 3,
   },
   featuredTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  featuredCompany: { fontFamily: F.semiBold, fontSize: 15, color: C.text },
-  featuredLocationRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
-  featuredLocation: { fontFamily: F.regular, fontSize: 12.5, color: C.textMuted },
-  appliedDot: { marginLeft: 'auto' },
-  featuredTitle: { fontFamily: F.bold, fontSize: 17, color: C.text, lineHeight: 22 },
-  featuredBadges: { flexDirection: 'row', gap: 6 },
+  featuredCompany: { fontFamily: F.semiBold, fontSize: 15.5, color: C.text },
+  featuredLocationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  featuredLocation: { fontFamily: F.regular, fontSize: 13, color: C.text2 },
+  appliedPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: C.greenLight, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 99,
+  },
+  appliedPillText: { fontFamily: F.semiBold, fontSize: 11.5, color: C.green },
+  featuredTitle: { fontFamily: F.bold, fontSize: 17.5, color: C.text, lineHeight: 23 },
+  featuredBadges: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   featuredFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
-  featuredSalary: { fontFamily: F.bold, fontSize: 16, color: C.orangeDark },
-  featuredTime: { fontFamily: F.regular, fontSize: 12.5, color: C.textMuted },
+  featuredSalary: { fontFamily: F.bold, fontSize: 17, color: C.orangeDark },
+  featuredTime: { fontFamily: F.regular, fontSize: 13, color: C.text2 },
 
-  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 },
-  badgeText: { fontFamily: F.medium, fontSize: 12 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 99 },
+  badgeText: { fontFamily: F.medium, fontSize: 12.5 },
 
   listItem: {
     flexDirection: 'row',
@@ -505,25 +666,27 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: C.surface,
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 10,
     borderRadius: 16,
     padding: 14,
+    minHeight: MIN_TOUCH_TARGET + 24, // garante área de toque confortável no card inteiro
     shadowColor: '#0d1829',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 1,
   },
-  listItemContent: { flex: 1, gap: 3 },
-  listItemTitle: { fontFamily: F.semiBold, fontSize: 15, color: C.text },
-  listItemCompany: { fontFamily: F.regular, fontSize: 13, color: C.text2 },
-  listItemMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  listItemSalary: { fontFamily: F.semiBold, fontSize: 13, color: C.orangeDark },
+  listItemContent: { flex: 1, gap: 4 },
+  listItemTitle: { fontFamily: F.semiBold, fontSize: 15.5, color: C.text },
+  listItemCompany: { fontFamily: F.regular, fontSize: 13.5, color: C.text2 },
+  listItemMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' },
+  listItemSalary: { fontFamily: F.semiBold, fontSize: 13.5, color: C.orangeDark },
   listItemRight: { alignItems: 'flex-end', gap: 8 },
-  listItemTime: { fontFamily: F.regular, fontSize: 11.5, color: C.textMuted },
+  listItemTime: { fontFamily: F.regular, fontSize: 12, color: C.text2 },
+  appliedDotSmall: { padding: 2 },
   chevronCircle: {
-    width: 22,
-    height: 22,
+    width: 24,
+    height: 24,
     borderRadius: 8,
     backgroundColor: C.surface2,
     alignItems: 'center',
@@ -535,32 +698,32 @@ const styles = StyleSheet.create({
 
   emptyState: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32, gap: 6 },
   emptyIconCircle: {
-    width: 64, height: 64, borderRadius: 22, backgroundColor: C.surface,
+    width: 72, height: 72, borderRadius: 24, backgroundColor: C.surface,
     alignItems: 'center', justifyContent: 'center', marginBottom: 6,
   },
-  emptyTitle: { fontFamily: F.semiBold, fontSize: 17, color: C.text },
-  emptySub: { fontFamily: F.regular, fontSize: 14, color: C.text2, textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontFamily: F.semiBold, fontSize: 18, color: C.text },
+  emptySub: { fontFamily: F.regular, fontSize: 14.5, color: C.text2, textAlign: 'center', lineHeight: 21 },
   clearFiltersBtn: {
-    marginTop: 10, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 99,
+    marginTop: 10, paddingHorizontal: 22, height: MIN_TOUCH_TARGET, justifyContent: 'center', borderRadius: 99,
     borderWidth: 1.5, borderColor: C.orangeBorder, backgroundColor: C.orangeLight,
   },
-  clearFiltersBtnText: { fontFamily: F.semiBold, fontSize: 13.5, color: C.orangeDark },
+  clearFiltersBtnText: { fontFamily: F.semiBold, fontSize: 14.5, color: C.orangeDark },
 
   errorState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 32 },
   errorIconCircle: {
-    width: 64, height: 64, borderRadius: 22, backgroundColor: '#fef2f2',
+    width: 72, height: 72, borderRadius: 24, backgroundColor: C.redLight,
     alignItems: 'center', justifyContent: 'center', marginBottom: 6,
   },
-  errorTitle: { fontFamily: F.semiBold, fontSize: 17, color: C.text },
-  errorSub: { fontFamily: F.regular, fontSize: 14, color: C.text2, textAlign: 'center' },
+  errorTitle: { fontFamily: F.semiBold, fontSize: 18, color: C.text },
+  errorSub: { fontFamily: F.regular, fontSize: 14.5, color: C.text2, textAlign: 'center' },
   retryBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14,
-    paddingHorizontal: 22, paddingVertical: 12, borderRadius: 99, backgroundColor: C.orange,
+    paddingHorizontal: 24, height: MIN_TOUCH_TARGET + 4, borderRadius: 99, backgroundColor: C.orange,
   },
-  retryBtnText: { fontFamily: F.semiBold, fontSize: 14.5, color: '#fff' },
+  retryBtnText: { fontFamily: F.semiBold, fontSize: 15, color: '#fff' },
 
   loadMoreSpinner: { paddingVertical: 20, alignItems: 'center' },
-  endText: { fontFamily: F.regular, fontSize: 13, color: C.textMuted, textAlign: 'center', paddingVertical: 20 },
+  endText: { fontFamily: F.regular, fontSize: 13.5, color: C.text2, textAlign: 'center', paddingVertical: 20 },
 
   skeletonFeatured: {
     width: FEATURED_CARD_WIDTH, backgroundColor: C.surface, borderRadius: 20,
@@ -568,7 +731,7 @@ const styles = StyleSheet.create({
   },
   skeletonList: {
     flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.surface,
-    marginHorizontal: 16, marginBottom: 8, borderRadius: 16, padding: 14,
+    marginHorizontal: 16, marginBottom: 10, borderRadius: 16, padding: 14,
   },
   skeletonBox: { backgroundColor: C.border, borderRadius: 6 },
 });

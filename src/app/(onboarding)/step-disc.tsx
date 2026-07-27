@@ -572,11 +572,5 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
   },
 
-  logo: {
-    width: 250,
-    height: 100,
-    transform: [{
-      scale: 2.7
-    }],
-  },
+  logo: { width: 190, height: 78 },
 });

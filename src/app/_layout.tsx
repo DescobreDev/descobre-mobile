@@ -11,7 +11,7 @@ import {
 import { useAuthStore } from '../store/authStore';
 
 export default function RootLayout() {
-  const { token, candidate, loadFromStorage } = useAuthStore();
+  const { token, candidate, pendingWelcome, loadFromStorage } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
   const [fontsLoaded] = useFonts({
@@ -27,6 +27,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!fontsLoaded || token === null) return;
+
+    if (pendingWelcome) return;
 
     const inAuth       = segments[0] === 'auth';
     const inOnboarding = segments[0] === '(onboarding)';
@@ -47,7 +49,7 @@ export default function RootLayout() {
     if (inAuth || inOnboarding) {
       router.replace('/(app)/home');
     }
-  }, [fontsLoaded, token, candidate?.profileCompleted, segments]);
+  }, [fontsLoaded, token, candidate?.profileCompleted, pendingWelcome, segments]);
 
   if (!fontsLoaded || token === null) return null;
 

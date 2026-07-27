@@ -13,6 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useOnboardingStore } from '../../store/onBoardingStore';
+import { useAuthStore } from '../../store/authStore';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -264,6 +265,7 @@ export default function OnboardingComplete() {
   }, []);
 
   const handleGoHome = () => {
+    useAuthStore.getState().setProfileCompleted();
     reset();
     router.replace('/(app)/home');
   };
@@ -300,7 +302,6 @@ export default function OnboardingComplete() {
           </View>
         </Animated.View>
 
-        {/* ── TÍTULO ──────────────────────────────────────────────────────── */}
         <Animated.Text
           style={[
             styles.title,
@@ -381,7 +382,6 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
 
-  // Anel do check
   ringOuter: {
     width: 128,
     height: 128,
@@ -390,7 +390,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 36,
-    // Borda suave laranja
     borderWidth: 2,
     borderColor: 'rgba(249,115,22,0.2)',
   },
@@ -405,7 +404,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Textos
   title: {
     fontFamily: FONT.bold,
     fontSize: 34,
@@ -423,7 +421,6 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
 
-  // Pills
   pillsRow: {
     gap: 10,
     alignItems: 'center',
@@ -445,7 +442,6 @@ const styles = StyleSheet.create({
     color: COLORS.orangeDark,
   },
 
-  // Botão
   footer: {
     paddingHorizontal: 24,
     paddingBottom: Platform.OS === 'ios' ? 32 : 24,

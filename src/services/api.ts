@@ -35,11 +35,9 @@ api.interceptors.response.use(
     console.log('[api] tem request?', !!error.request);
 
     if (error.response) {
-      // O servidor respondeu, mas com erro (400, 401, 500...)
       console.log('[api] status:', error.response.status);
       console.log('[api] data:', JSON.stringify(error.response.data));
     } else if (error.request) {
-      // Requisição foi feita, mas não teve resposta nenhuma
       console.log('[api] SEM RESPOSTA do servidor (rede/timeout/CORS)');
     } else {
       console.log('[api] erro ao montar a requisição:', error.message);

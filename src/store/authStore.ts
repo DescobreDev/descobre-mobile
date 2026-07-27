@@ -16,6 +16,12 @@ interface AuthState {
   token: string | null;
   isLoading: boolean;
 
+  // Enquanto true, o guard de rota do RootLayout NÃO deve redirecionar
+  // automaticamente com base em token/candidate. Usado pra manter o usuário
+  // parado na tela de confirmação de cadastro até ele fechar o modal de
+  // boas-vindas manualmente (ver components/auth/WelcomeModal.tsx).
+  pendingWelcome: boolean;
+
   loadFromStorage: () => Promise<void>;
   checkCpf: (cpf: string) => Promise<{ name: string; birthDate: string | null }>;
   register: (data: {
@@ -27,12 +33,14 @@ interface AuthState {
   login: (data: { cpf: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   setProfileCompleted: () => void;
+  setPendingWelcome: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   candidate: null,
   token: null,
   isLoading: false,
+  pendingWelcome: false,
 
   loadFromStorage: async () => {
     const token = await SecureStore.getItemAsync('candidate_token');
@@ -93,4 +101,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!candidate) return;
     set({ candidate: { ...candidate, profileCompleted: true } });
   },
+
+  setPendingWelcome: (value) => set({ pendingWelcome: value }),
 }));
