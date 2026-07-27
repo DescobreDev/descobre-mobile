@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
@@ -24,6 +26,8 @@ import { SmartLocationInput } from '../../components/onboarding/SmartLocationInp
 
 import { useOnboardingStore } from '../../store/onBoardingStore';
 
+type GpsStatus = 'idle' | 'loading' | 'success' | 'error';
+
 export default function StepLocation() {
   const router = useRouter();
 
@@ -34,20 +38,65 @@ export default function StepLocation() {
   const [state, setState] = useState(data.state);
   const [saving, setSaving] = useState(false);
 
+  const [gpsStatus, setGpsStatus] = useState<GpsStatus>('idle');
+
   const canAdvance = city.trim().length > 0 && state.length > 0;
 
   const handleUseGps = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
+    if (gpsStatus === 'loading') return; // evita clique duplo
 
-      if (status !== 'granted') {
-        alert('Permita o acesso à localização.');
+    setGpsStatus('loading');
+
+    try {
+      // 1. Verifica se o serviço de localização (GPS) do aparelho está ligado
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+      if (!servicesEnabled) {
+        alert(
+          'Seu GPS está desligado. Ative os serviços de localização nas configurações do seu aparelho para usar essa opção.'
+        );
+        setGpsStatus('error');
         return;
       }
 
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      // 2. Verifica/pede permissão do app
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Permita o acesso à localização para usar essa opção.');
+        setGpsStatus('error');
+        return;
+      }
+
+      // 3. No Android, força o prompt de "alta precisão" caso não esteja ativo.
+      // Resolve boa parte dos casos de "Current location is unavailable".
+      if (Platform.OS === 'android') {
+        try {
+          await Location.enableNetworkProviderAsync();
+        } catch (e) {
+          // usuário recusou o prompt de alta precisão, ou já está habilitado
+          console.log('enableNetworkProviderAsync:', e);
+        }
+      }
+
+      // 4. Busca a posição, com timeout mais generoso (emulador é mais lento)
+      let location;
+      try {
+        location = await Promise.race([
+          Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('timeout')), 20000)
+          ),
+        ]);
+      } catch (err) {
+        // Fallback: tenta usar a última posição conhecida antes de desistir
+        const lastKnown = await Location.getLastKnownPositionAsync();
+        if (lastKnown) {
+          location = lastKnown;
+        } else {
+          throw err;
+        }
+      }
 
       const address = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
@@ -56,13 +105,30 @@ export default function StepLocation() {
 
       if (address.length > 0) {
         const uf = getUfFromStateName(address[0].region ?? '');
-
         setCity(address[0].city ?? '');
         setState(uf);
+        setGpsStatus('success');
+      } else {
+        alert('Não conseguimos identificar sua cidade a partir da sua localização.');
+        setGpsStatus('error');
       }
     } catch (error) {
       console.error(error);
-      alert('Não foi possível obter sua localização.');
+
+      if ((error as Error)?.message === 'timeout') {
+        alert(
+          'A busca pela localização demorou demais. Tente novamente ou digite manualmente.'
+        );
+      } else {
+        alert('Não foi possível obter sua localização. Verifique se o GPS está ativado.');
+      }
+
+      setGpsStatus('error');
+    } finally {
+      setTimeout(
+        () => setGpsStatus('idle'),
+        gpsStatus === 'success' ? 1500 : 0
+      );
     }
   };
 
@@ -71,9 +137,7 @@ export default function StepLocation() {
 
     try {
       setLocation(city.trim(), state);
-
       nextStep();
-
       router.push('/(onboarding)/step-priority');
     } finally {
       setSaving(false);
@@ -84,6 +148,9 @@ export default function StepLocation() {
     prevStep();
     router.back();
   };
+
+  const isGpsLoading = gpsStatus === 'loading';
+  const isGpsSuccess = gpsStatus === 'success';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -103,11 +170,37 @@ export default function StepLocation() {
         <TouchableOpacity
           onPress={handleUseGps}
           activeOpacity={0.75}
-          style={styles.gpsButton}
+          disabled={isGpsLoading}
+          style={[
+            styles.gpsButton,
+            isGpsLoading && styles.gpsButtonActive,
+            isGpsSuccess && styles.gpsButtonSuccess,
+          ]}
         >
-          <Ionicons name="location-outline" size={18} color={COLORS.textMuted} />
-          <Text style={styles.gpsButtonLabel}>
-            Usar minha localização atual
+          {isGpsLoading ? (
+            <ActivityIndicator
+              size="small"
+              color={COLORS.primary ?? COLORS.textMuted}
+            />
+          ) : (
+            <Ionicons
+              name={isGpsSuccess ? 'checkmark-circle' : 'location-outline'}
+              size={18}
+              color={isGpsSuccess ? '#fff' : COLORS.textMuted}
+            />
+          )}
+
+          <Text
+            style={[
+              styles.gpsButtonLabel,
+              (isGpsLoading || isGpsSuccess) && styles.gpsButtonLabelActive,
+            ]}
+          >
+            {isGpsLoading
+              ? 'Buscando localização...'
+              : isGpsSuccess
+              ? 'Localização encontrada!'
+              : 'Usar minha localização atual'}
           </Text>
         </TouchableOpacity>
 
@@ -167,10 +260,24 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
 
+  gpsButtonActive: {
+    borderColor: COLORS.primary ?? COLORS.border,
+    backgroundColor: (COLORS.primary ?? '#000000') + '15',
+  },
+
+  gpsButtonSuccess: {
+    borderColor: COLORS.primary ?? '#22c55e',
+    backgroundColor: COLORS.primary ?? '#22c55e',
+  },
+
   gpsButtonLabel: {
     fontFamily: FONT.medium,
     fontSize: 14,
     color: COLORS.textMuted,
+  },
+
+  gpsButtonLabelActive: {
+    color: '#fff',
   },
 
   section: {
