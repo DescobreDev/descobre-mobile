@@ -1,37 +1,37 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Platform,
   RefreshControl,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/services/api';
 
 const C = {
   orange: '#f97316',
-  orangeDark: '#ea580c',
-  orangeLight: '#fff2e3',
-  orangeBorder: 'rgba(249,115,22,0.25)',
-  text: '#798eaf',
-  text2: '#5a6a82',
-  textMuted: '#9aaabb',
+  orangeDark: '#c2410c',
+  orangeLight: '#fff7ed',
+  orangeBorder: 'rgba(249,115,22,0.35)',
+  text: '#0d1829',
+  text2: '#3d4a5c',
+  textMuted: '#6b7684',
   surface: '#ffffff',
-  surface2: '#f8fafc',
-  border: '#e9ecf2',
-  green: '#10b981',
+  surface2: '#f4f6f9',
+  border: '#e4e9f0',
+  green: '#059669',
   greenLight: '#ecfdf5',
-  indigo: '#6366f1',
+  indigo: '#4f46e5',
   indigoLight: '#eef2ff',
-  yellow: '#f59e0b',
+  yellow: '#d97706',
   yellowLight: '#fffbeb',
-  red: '#ef4444',
+  red: '#dc2626',
   redLight: '#fef2f2',
 };
 
@@ -41,6 +41,8 @@ const F = {
   semiBold: 'Poppins_600SemiBold',
   bold: 'Poppins_700Bold',
 };
+
+const MIN_TOUCH_TARGET = 48;
 
 type ApplicationStatus =
   | 'RECEBIDA'
@@ -63,12 +65,7 @@ type Application = {
 
 const STATUS_CONFIG: Record<
   ApplicationStatus,
-  {
-    label: string;
-    bg: string;
-    text: string;
-    icon: React.ComponentProps<typeof Ionicons>['name'];
-  }
+  { label: string; bg: string; text: string; icon: React.ComponentProps<typeof Ionicons>['name'] }
 > = {
   RECEBIDA: { label: 'Enviada', bg: C.surface2, text: C.textMuted, icon: 'time-outline' },
   ANALISE: { label: 'Em análise', bg: C.yellowLight, text: C.yellow, icon: 'hourglass-outline' },
@@ -85,7 +82,6 @@ const STATUS_FILTERS: { label: string; value: ApplicationStatus | null }[] = [
   { label: 'Aprovado', value: 'APROVADO' },
 ];
 
-
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const days = Math.floor(diff / 86400000);
@@ -97,16 +93,11 @@ function timeAgo(dateStr: string): string {
 }
 
 function initials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
+  return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 }
 
 function CompanyAvatar({ name, size = 46 }: { name: string; size?: number }) {
-  const colors = ['#f97316', '#6366f1', '#10b981', '#ec4899', '#f59e0b', '#3b82f6'];
+  const colors = ['#c2410c', '#4338ca', '#059669', '#be185d', '#b45309', '#1d4ed8'];
   const colorIndex = name.charCodeAt(0) % colors.length;
   return (
     <View
@@ -115,9 +106,9 @@ function CompanyAvatar({ name, size = 46 }: { name: string; size?: number }) {
         {
           width: size,
           height: size,
-          borderRadius: size / 4,
-          backgroundColor: colors[colorIndex] + '22',
-          borderColor: colors[colorIndex] + '44',
+          borderRadius: size / 3.4,
+          backgroundColor: colors[colorIndex] + '1c',
+          borderColor: colors[colorIndex] + '40',
         },
       ]}
     >
@@ -132,30 +123,22 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
   const cfg = STATUS_CONFIG[status];
   return (
     <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
-      <Ionicons name={cfg.icon} size={12} color={cfg.text} />
+      <Ionicons name={cfg.icon} size={13} color={cfg.text} />
       <Text style={[styles.statusBadgeText, { color: cfg.text }]}>{cfg.label}</Text>
     </View>
   );
 }
 
-function FilterChip({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
+function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
     <TouchableOpacity
       onPress={onPress}
       style={[styles.filterChip, active && styles.filterChipActive]}
-      activeOpacity={0.75}
+      activeOpacity={0.8}
+      hitSlop={{ top: 6, bottom: 6, left: 2, right: 2 }}
     >
-      <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
-        {label}
-      </Text>
+      {active && <Ionicons name="checkmark" size={15} color="#fff" style={{ marginRight: 4 }} />}
+      <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -173,41 +156,65 @@ function SummaryCard({
 }) {
   return (
     <View style={[styles.summaryCard, { borderTopColor: color }]}>
-      <Ionicons name={icon} size={20} color={color} />
+      <Ionicons name={icon} size={18} color={color} />
       <Text style={[styles.summaryCount, { color }]}>{count}</Text>
-      <Text style={styles.summaryLabel}>{label}</Text>
+      <Text style={styles.summaryLabel} numberOfLines={1}>{label}</Text>
     </View>
   );
 }
 
-function ApplicationCard({ item }: { item: Application }) {
-  const router = useRouter();
+function ApplicationCard({ item, onPress }: { item: Application; onPress: () => void }) {
   return (
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.82}
-      onPress={() => router.push(`/(app)/job/applicationProcess/${item.id}`)}
-    >
-      <CompanyAvatar name={item.companyName} size={46} />
+    <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={onPress}>
+      <CompanyAvatar name={item.companyName} size={48} />
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {item.jobTitle}
-        </Text>
-        <Text style={styles.cardCompany} numberOfLines={1}>
-          {item.companyName}
-        </Text>
+        <Text style={styles.cardTitle} numberOfLines={1}>{item.jobTitle}</Text>
+        <Text style={styles.cardCompany} numberOfLines={1}>{item.companyName}</Text>
         <View style={styles.cardMeta}>
           <StatusBadge status={item.status} />
           <Text style={styles.cardTime}>{timeAgo(item.appliedAt)}</Text>
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+      <View style={styles.chevronCircle}>
+        <Ionicons name="chevron-forward" size={16} color={C.text2} />
+      </View>
     </TouchableOpacity>
   );
 }
 
+// Skeletons: evita "tela em branco + spinner central" durante o carregamento
+// inicial, igual ao padrão adotado na Home.
+function SkeletonSummary() {
+  return (
+    <View style={styles.summaryRow}>
+      {[0, 1, 2, 3].map((i) => (
+        <View key={i} style={[styles.summaryCard, { borderTopColor: C.border, gap: 6 }]}>
+          <View style={[styles.skeletonBox, { width: 18, height: 18, borderRadius: 5 }]} />
+          <View style={[styles.skeletonBox, { width: 28, height: 18, borderRadius: 5 }]} />
+          <View style={[styles.skeletonBox, { width: 46, height: 10, borderRadius: 4 }]} />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <View style={styles.skeletonCard}>
+      <View style={[styles.skeletonBox, { width: 48, height: 48, borderRadius: 14 }]} />
+      <View style={{ flex: 1, gap: 8 }}>
+        <View style={[styles.skeletonBox, { height: 15, width: '65%' }]} />
+        <View style={[styles.skeletonBox, { height: 13, width: '40%' }]} />
+        <View style={[styles.skeletonBox, { height: 20, width: '35%', borderRadius: 99 }]} />
+      </View>
+    </View>
+  );
+}
 
 export default function ApplicationsScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
   const [activeFilter, setActiveFilter] = useState<ApplicationStatus | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -234,12 +241,12 @@ export default function ApplicationsScreen() {
     fetchApplications();
   }, [fetchApplications]);
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchApplications();
-  };
+  }, [fetchApplications]);
 
-  const filtered = applications;
+  const goToApplication = (id: number) => router.push(`/(app)/job/applicationProcess/${id}`);
 
   const inReview = applications.filter((a) => a.status === 'ANALISE').length;
   const interviews = applications.filter((a) => a.status === 'ENTREVISTA').length;
@@ -247,12 +254,16 @@ export default function ApplicationsScreen() {
 
   const ListHeader = (
     <View>
-      <View style={styles.summaryRow}>
-        <SummaryCard count={applications.length} label="Total" color={C.text2} icon="layers-outline" />
-        <SummaryCard count={inReview} label="Em análise" color={C.yellow} icon="hourglass-outline" />
-        <SummaryCard count={interviews} label="Entrevistas" color={C.orangeDark} icon="videocam-outline" />
-        <SummaryCard count={approved} label="Aprovado" color={C.green} icon="checkmark-circle-outline" />
-      </View>
+      {loading ? (
+        <SkeletonSummary />
+      ) : (
+        <View style={styles.summaryRow}>
+          <SummaryCard count={applications.length} label="Total" color={C.text2} icon="layers-outline" />
+          <SummaryCard count={inReview} label="Em análise" color={C.yellow} icon="hourglass-outline" />
+          <SummaryCard count={interviews} label="Entrevistas" color={C.orangeDark} icon="videocam-outline" />
+          <SummaryCard count={approved} label="Aprovado" color={C.green} icon="checkmark-circle-outline" />
+        </View>
+      )}
 
       <View style={styles.filtersRow}>
         {STATUS_FILTERS.map((f) => (
@@ -265,89 +276,134 @@ export default function ApplicationsScreen() {
         ))}
       </View>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>
-          {activeFilter ? STATUS_CONFIG[activeFilter].label : 'Todas as candidaturas'}
-        </Text>
-        <Text style={styles.jobCount}>{filtered.length} vagas</Text>
-      </View>
+      {!loading && (
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>
+            {activeFilter ? STATUS_CONFIG[activeFilter].label : 'Todas as candidaturas'}
+          </Text>
+          <View style={styles.jobCountPill}>
+            <Text style={styles.jobCountText}>{applications.length} vagas</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 
-  if (loading) {
+  // Estado de erro dedicado (sem dado nenhum ainda) — separado do "lista vazia",
+  // igual à Home: o usuário precisa saber se é "sem resultado" ou "algo quebrou".
+  if (error && !loading && applications.length === 0) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Candidaturas</Text>
+      <View style={[styles.safe, { paddingTop: insets.top }]}>
+        <View style={styles.headerShadowWrap}>
+          <LinearGradient
+            colors={[C.orange, C.orangeDark]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.header}
+          >
+            <Text style={styles.headerTitle}>Candidaturas</Text>
+          </LinearGradient>
         </View>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={C.orange} />
+        <View style={styles.errorState}>
+          <View style={styles.errorIconCircle}>
+            <Ionicons name="cloud-offline-outline" size={36} color={C.red} />
+          </View>
+          <Text style={styles.errorTitle}>Não foi possível carregar</Text>
+          <Text style={styles.errorSub}>{error}</Text>
+          <TouchableOpacity onPress={fetchApplications} style={styles.retryBtn} activeOpacity={0.85}>
+            <Ionicons name="refresh" size={18} color="#fff" />
+            <Text style={styles.retryBtnText}>Tentar de novo</Text>
+          </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Candidaturas</Text>
+    <View style={[styles.safe, { paddingTop: insets.top }]}>
+      <View style={styles.headerShadowWrap}>
+        <LinearGradient
+          colors={[C.orange, C.orangeDark]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.header}
+        >
+          <View>
+            <Text style={styles.headerTitle}>Candidaturas</Text>
+            <Text style={styles.headerSub}>Acompanhe o status das suas vagas</Text>
+          </View>
+        </LinearGradient>
       </View>
 
       <FlatList
-        data={filtered}
+        style={styles.list}
+        data={loading ? [] : applications}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => <ApplicationCard item={item} />}
+        renderItem={({ item }) => (
+          <ApplicationCard item={item} onPress={() => goToApplication(item.id)} />
+        )}
         ListHeaderComponent={ListHeader}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: 24 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[C.orange]} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.orange} colors={[C.orange]} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons
-              name={error ? 'alert-circle-outline' : 'document-text-outline'}
-              size={44}
-              color={C.textMuted}
-            />
-            <Text style={styles.emptyTitle}>
-              {error ? 'Erro ao carregar' : 'Nenhuma candidatura aqui'}
-            </Text>
-            <Text style={styles.emptySub}>
-              {error ??
-                (activeFilter
+          loading ? (
+            <View style={{ gap: 10, paddingHorizontal: 16, paddingTop: 4 }}>
+              {[0, 1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="document-text-outline" size={36} color={C.text2} />
+              </View>
+              <Text style={styles.emptyTitle}>Nenhuma candidatura aqui</Text>
+              <Text style={styles.emptySub}>
+                {activeFilter
                   ? 'Não há candidaturas com esse status. Tente outro filtro.'
-                  : 'Você ainda não se candidatou a nenhuma vaga.')}
-            </Text>
-          </View>
+                  : 'Você ainda não se candidatou a nenhuma vaga.'}
+              </Text>
+              {activeFilter && (
+                <TouchableOpacity
+                  onPress={() => setActiveFilter(null)}
+                  style={styles.clearFiltersBtn}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.clearFiltersBtnText}>Limpar filtro</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: C.surface2,
+  safe: { flex: 1, backgroundColor: C.surface2 },
+
+  headerShadowWrap: {
+    shadowColor: '#0d1829',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
+    elevation: 6,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? 16 : 8,
-    paddingBottom: 14,
-    backgroundColor: C.orange,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 22,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
   },
-  headerTitle: {
-    fontFamily: F.bold,
-    fontSize: 26,
-    color: '#fff',
-  },
+  headerTitle: { fontFamily: F.bold, fontSize: 22, color: '#fff' },
+  headerSub: { fontFamily: F.regular, fontSize: 14, color: 'rgba(255,255,255,0.92)', marginTop: 2 },
 
-  listContent: {
-    paddingBottom: 24,
-  },
+  list: { flex: 1 },
+  listContent: { paddingBottom: 24 },
 
   // Summary
   summaryRow: {
@@ -360,71 +416,62 @@ const styles = StyleSheet.create({
   summaryCard: {
     flex: 1,
     backgroundColor: C.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: C.border,
+    borderRadius: 14,
     borderTopWidth: 3,
-    padding: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
     alignItems: 'center',
-    gap: 2,
+    gap: 3,
+    shadowColor: '#0d1829',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  summaryCount: {
-    fontFamily: F.bold,
-    fontSize: 22,
-    marginTop: 2,
-  },
-  summaryLabel: {
-    fontFamily: F.regular,
-    fontSize: 14,
-    color: C.textMuted,
-    textAlign: 'center',
-  },
+  summaryCount: { fontFamily: F.bold, fontSize: 19, marginTop: 2 },
+  summaryLabel: { fontFamily: F.medium, fontSize: 11, color: C.textMuted, textAlign: 'center' },
 
-  // Filters
+  // Filters — mesmo padrão de chip com checkmark da Home
   filtersRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    marginTop: 16,
+    marginBottom: 4,
   },
   filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    height: MIN_TOUCH_TARGET - 6,
     borderRadius: 99,
     borderWidth: 1.5,
     borderColor: C.border,
     backgroundColor: C.surface,
   },
-  filterChipActive: {
-    borderColor: C.orange,
-    backgroundColor: C.orangeLight,
-  },
-  filterChipText: {
-    fontFamily: F.medium,
-    fontSize: 16,
-    color: C.text2,
-  },
-  filterChipTextActive: {
-    color: C.orangeDark,
-  },
+  filterChipActive: { borderColor: C.orange, backgroundColor: C.orange },
+  filterChipText: { fontFamily: F.medium, fontSize: 14, color: C.text2 },
+  filterChipTextActive: { color: '#fff', fontFamily: F.semiBold },
 
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginBottom: 8,
+    marginTop: 14,
+    marginBottom: 10,
   },
-  sectionTitle: {
-    fontFamily: F.semiBold,
-    fontSize: 18,
-    color: C.text,
+  sectionTitle: { fontFamily: F.bold, fontSize: 18, color: C.text },
+  jobCountPill: {
+    backgroundColor: C.surface,
+    borderRadius: 99,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: C.border,
   },
-  jobCount: {
-    fontFamily: F.regular,
-    fontSize: 16,
-    color: C.textMuted,
-  },
+  jobCountText: { fontFamily: F.semiBold, fontSize: 12, color: C.text2 },
 
   // Card
   card: {
@@ -433,36 +480,28 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: C.surface,
     marginHorizontal: 16,
-    marginBottom: 8,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.border,
+    marginBottom: 10,
+    borderRadius: 16,
     padding: 14,
+    minHeight: MIN_TOUCH_TARGET + 24,
+    shadowColor: '#0d1829',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 1,
   },
-  cardContent: {
-    flex: 1,
-    gap: 3,
-  },
-  cardTitle: {
-    fontFamily: F.semiBold,
-    fontSize: 18,
-    color: C.text,
-  },
-  cardCompany: {
-    fontFamily: F.regular,
-    fontSize: 16,
-    color: C.text2,
-  },
-  cardMeta: {
-    flexDirection: 'row',
+  cardContent: { flex: 1, gap: 4 },
+  cardTitle: { fontFamily: F.semiBold, fontSize: 15.5, color: C.text },
+  cardCompany: { fontFamily: F.regular, fontSize: 13.5, color: C.text2 },
+  cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' },
+  cardTime: { fontFamily: F.regular, fontSize: 12, color: C.textMuted },
+  chevronCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    backgroundColor: C.surface2,
     alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
-  },
-  cardTime: {
-    fontFamily: F.regular,
-    fontSize: 14,
-    color: C.textMuted,
+    justifyContent: 'center',
   },
 
   // Status badge
@@ -470,57 +509,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     borderRadius: 99,
   },
-  statusBadgeText: {
-    fontFamily: F.medium,
-    fontSize: 14,
-  },
+  statusBadgeText: { fontFamily: F.medium, fontSize: 12.5 },
 
-  // Company avatar
-  companyAvatar: {
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  companyAvatarText: {
-    fontFamily: F.bold,
-  },
+  companyAvatar: { borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  companyAvatarText: { fontFamily: F.bold },
 
   // Empty
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 32,
-    gap: 8,
+  emptyState: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32, gap: 6 },
+  emptyIconCircle: {
+    width: 72, height: 72, borderRadius: 24, backgroundColor: C.surface,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 6,
   },
-  emptyTitle: {
-    fontFamily: F.semiBold,
-    fontSize: 18,
-    color: C.text,
-    marginTop: 8,
-  },
-  emptySub: {
-    fontFamily: F.regular,
-    fontSize: 16,
-    color: C.text2,
-    textAlign: 'center',
-    lineHeight: 21,
-  },
+  emptyTitle: { fontFamily: F.semiBold, fontSize: 18, color: C.text },
+  emptySub: { fontFamily: F.regular, fontSize: 14.5, color: C.text2, textAlign: 'center', lineHeight: 21 },
   clearFiltersBtn: {
-    marginTop: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 99,
-    borderWidth: 1.5,
-    borderColor: C.orangeBorder,
-    backgroundColor: C.orangeLight,
+    marginTop: 10, paddingHorizontal: 22, height: MIN_TOUCH_TARGET, justifyContent: 'center', borderRadius: 99,
+    borderWidth: 1.5, borderColor: C.orangeBorder, backgroundColor: C.orangeLight,
   },
-  clearFiltersBtnText: {
-    fontFamily: F.semiBold,
-    fontSize: 16,
-    color: C.orangeDark,
+  clearFiltersBtnText: { fontFamily: F.semiBold, fontSize: 14.5, color: C.orangeDark },
+
+  errorState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 32 },
+  errorIconCircle: {
+    width: 72, height: 72, borderRadius: 24, backgroundColor: C.redLight,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 6,
   },
+  errorTitle: { fontFamily: F.semiBold, fontSize: 18, color: C.text },
+  errorSub: { fontFamily: F.regular, fontSize: 14.5, color: C.text2, textAlign: 'center' },
+  retryBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14,
+    paddingHorizontal: 24, height: MIN_TOUCH_TARGET + 4, borderRadius: 99, backgroundColor: C.orange,
+  },
+  retryBtnText: { fontFamily: F.semiBold, fontSize: 15, color: '#fff' },
+
+  skeletonCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.surface,
+    marginHorizontal: 16, marginBottom: 10, borderRadius: 16, padding: 14,
+  },
+  skeletonBox: { backgroundColor: C.border, borderRadius: 6 },
 });
