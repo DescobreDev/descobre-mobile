@@ -405,7 +405,6 @@ const styles = StyleSheet.create({
   list: { flex: 1 },
   listContent: { paddingBottom: 24 },
 
-  // Summary
   summaryRow: {
     flexDirection: 'row',
     gap: 8,
@@ -431,7 +430,6 @@ const styles = StyleSheet.create({
   summaryCount: { fontFamily: F.bold, fontSize: 19, marginTop: 2 },
   summaryLabel: { fontFamily: F.medium, fontSize: 11, color: C.textMuted, textAlign: 'center' },
 
-  // Filters — mesmo padrão de chip com checkmark da Home
   filtersRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
