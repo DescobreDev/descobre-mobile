@@ -13,6 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useJobFilterOptions } from '../../hooks/useJobFilterOptions';
 import { createLocalSearch, SearchSelect } from '../shared/SearchSelect';
+import { SmartLocationInput } from '../onboarding/SmartLocationInput';
+
 import {
   AffirmativeType,
   ExperienceLevel,
@@ -168,8 +170,8 @@ export function AdvancedFiltersModal({
     } else {
       setUsingProfileLocation(
         !!candidateLocation &&
-          next.city === (candidateLocation.city ?? null) &&
-          next.state === (candidateLocation.state ?? null),
+        next.city === (candidateLocation.city ?? null) &&
+        next.state === (candidateLocation.state ?? null),
       );
     }
 
@@ -298,36 +300,14 @@ export function AdvancedFiltersModal({
                 </TouchableOpacity>
               ) : null}
 
-              <View style={styles.row}>
-                <View style={[styles.inputWrap, { flex: 2 }]}>
-                  <Text style={styles.inputLabel}>Cidade</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Ex: São Paulo"
-                    placeholderTextColor={C.textMuted}
-                    value={draft.city ?? ''}
-                    onChangeText={(v) => {
-                      setUsingProfileLocation(false);
-                      patch({ city: v || null });
-                    }}
-                  />
-                </View>
-                <View style={[styles.inputWrap, { flex: 1 }]}>
-                  <Text style={styles.inputLabel}>UF</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="SP"
-                    placeholderTextColor={C.textMuted}
-                    maxLength={2}
-                    autoCapitalize="characters"
-                    value={draft.state ?? ''}
-                    onChangeText={(v) => {
-                      setUsingProfileLocation(false);
-                      patch({ state: v ? v.toUpperCase() : null });
-                    }}
-                  />
-                </View>
-              </View>
+              <SmartLocationInput
+                city={draft.city ?? ''}
+                state={draft.state ?? ''}
+                onSelect={(city, uf) => {
+                  setUsingProfileLocation(false);
+                  patch({ city, state: uf });
+                }}
+              />
             </View>
 
             {/* Faixa salarial */}

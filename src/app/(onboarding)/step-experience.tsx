@@ -47,6 +47,21 @@ function toIsoDate(display: string): string {
   return `${parts[1]}-${parts[0]}`;
 }
 
+// Máscara de moeda (R$ 0.000,00). Trabalha sempre a partir dos dígitos
+// crus, então funciona bem tanto ao digitar quanto ao apagar caracteres.
+function formatCurrencyBRL(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+
+  const cents = parseInt(digits, 10);
+  const amount = cents / 100;
+
+  return amount.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+}
+
 function isExperienceValid(exp: OnboardingExperience): boolean {
   return exp.company.trim().length > 0;
 }
@@ -71,6 +86,10 @@ function ExperienceCard({
   isFirst,
 }: ExperienceCardProps) {
   const valid = isExperienceValid(exp);
+
+  const handleSalaryChange = (raw: string) => {
+    onChange({ ...exp, salary: formatCurrencyBRL(raw) } as any);
+  };
 
   return (
     <View style={[styles.card, expanded && styles.cardExpanded]}>
@@ -132,18 +151,17 @@ function ExperienceCard({
             label="Cargo"
             placeholder="Ex: Analista de Dados"
             value={exp.position}
-            optional="true"
+            optional
             onChangeText={(v) => onChange({ ...exp, position: v })}
           />
 
           <Field
             label="Salário"
-            placeholder="Ex: R$ 2.500,00"
-            optional="true"
+            placeholder="R$ 0,00"
+            optional
             value={(exp as any).salary ?? ''}
-            onChangeText={(v) =>
-              onChange({ ...exp, salary: v } as any)
-            }
+            onChangeText={handleSalaryChange}
+            keyboardType="number-pad"
           />
 
           <View style={styles.row}>
@@ -360,6 +378,11 @@ export default function Step4Experience() {
 
         {!firstJobSeeker && (
           <View style={styles.experiencesBlock}>
+            <Text style={styles.sectionCount}>
+              {experiences.length}{' '}
+              {experiences.length === 1 ? 'experiência adicionada' : 'experiências adicionadas'}
+            </Text>
+
             {experiences.map((exp, i) => (
               <ExperienceCard
                 key={i}
@@ -455,6 +478,12 @@ const styles = StyleSheet.create({
   },
 
   experiencesBlock: { gap: 10 },
+  sectionCount: {
+    fontFamily: FONT.medium,
+    fontSize: 13,
+    color: COLORS.textMuted,
+    marginBottom: 2,
+  },
   card: {
     borderWidth: 1.5,
     borderColor: COLORS.border,

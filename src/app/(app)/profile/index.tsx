@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/services/api';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '../../../store/authStore';
+import { ENDPOINTS } from '../../../constants/endpoints';
 
 type CandidateProfile = {
   id: number;
@@ -125,6 +126,8 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { logout } = useAuthStore();
 
+  const insets = useSafeAreaInsets();
+
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
   const [resume, setResume] = useState<CandidateResume | null>(null);
   const [loading, setLoading] = useState(true);
@@ -136,12 +139,14 @@ export default function ProfileScreen() {
     try {
       setError(null);
       const [profileRes, resumeRes] = await Promise.all([
-        api.get('/candidate/profile'),
-        api.get('/candidate/resume'),
+        api.get(ENDPOINTS.profile.get),
+        api.get(ENDPOINTS.resume.get),
       ]);
       setProfile(profileRes.data);
       setResume(resumeRes.data);
+      console.log('Perfil carregado com sucesso:', profileRes.data);
     } catch (e) {
+      console.log('Erro ao carregar perfil:', e);
       setError('Não foi possível carregar seu perfil.');
     } finally {
       setLoading(false);
@@ -166,9 +171,17 @@ export default function ProfileScreen() {
 
   if (error && !loading && !profile) {
     return (
-      <View style={[styles.safe, { flex: 1 }]}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Meu Perfil</Text>
+      <View style={[styles.safe, { flex: 1, paddingTop: insets.top }]}>
+        <View style={styles.headerShadowWrap}>
+          <LinearGradient
+            colors={[C.orange, C.orangeDark]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.header}
+          >
+            <Text style={styles.headerTitle}>Meu Perfil</Text>
+            <Text style={styles.headerSub}>Visualize e edite suas informações</Text>
+          </LinearGradient>
         </View>
         <View style={styles.errorState}>
           <View style={styles.errorIconCircle}>
@@ -189,16 +202,33 @@ export default function ProfileScreen() {
   const completion = profile?.completionPercentage ?? 0;
 
   return (
-    <View style={styles.safe}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Meu Perfil</Text>
+    <View style={[styles.safe, { paddingTop: insets.top }]}>
+      <View style={styles.headerShadowWrap}>
+        <LinearGradient
+          colors={[C.orange, C.orangeDark]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.header}
+        >
+          <Text style={styles.headerTitle}>Meu Perfil</Text>
+          <Text style={styles.headerSub}>Visualize e edite suas informações</Text>
+        </LinearGradient>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        style={styles.list}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 32 + insets.bottom }
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.orange} colors={[C.orange]} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={C.orange}
+            colors={[C.orange]}
+          />
         }
       >
         {/* Avatar card */}
@@ -217,12 +247,12 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.avatarInfo}>
               <Text style={styles.avatarName}>{profile?.name}</Text>
-              <Text style={styles.avatarEmail}>{profile?.email}</Text>
+              {/* <Text style={styles.avatarEmail}>{profile?.email}</Text> */}
             </View>
             <TouchableOpacity
               style={styles.editAvatarBtn}
               activeOpacity={0.8}
-              // onPress={() => router.push('/(app)/profile/edit-avatar')}
+            // onPress={() => router.push('/(app)/profile/edit-avatar')}
             >
               <Ionicons name="pencil" size={15} color={C.orangeDark} />
               <Text style={styles.editAvatarText}>Editar</Text>
@@ -254,13 +284,13 @@ export default function ProfileScreen() {
               icon: 'person-outline',
               label: 'Nome completo',
               sublabel: profile?.name,
-              // onPress: () => router.push('/(app)/profile/edit-personal'),
+              onPress: () => router.push('/(app)/profile/edit-personal'),
             },
             {
               icon: 'location-outline',
               label: 'Localização',
               sublabel: profile?.city ? `${profile.city} - ${profile.state}` : 'Não informada',
-              // onPress: () => router.push('/(app)/profile/edit-personal'),
+              onPress: () => router.push('/(app)/profile/edit-personal'),
             },
             {
               icon: 'briefcase-outline',
@@ -281,7 +311,7 @@ export default function ProfileScreen() {
               icon: 'heart-outline',
               label: 'Interesses',
               sublabel: `${profile?.interests?.length ?? 0} selecionados`,
-              // onPress: () => router.push('/(app)/profile/edit-interests'),
+              onPress: () => router.push('/(app)/profile/edit-interests'),
             },
           ]}
         />
@@ -300,13 +330,13 @@ export default function ProfileScreen() {
                 icon: 'briefcase-outline',
                 label: 'Experiências profissionais',
                 sublabel: `${resume?.experiences?.length ?? 0} experiências`,
-                // onPress: () => router.push('/(app)/profile/experiences'),
+                onPress: () => router.push('/(app)/profile/experiences'),
               },
               {
                 icon: 'school-outline',
                 label: 'Formação acadêmica',
                 sublabel: resume?.education?.[0]?.course ?? '0 formações',
-                // onPress: () => router.push('/(app)/profile/education'),
+                onPress: () => router.push('/(app)/profile/education'),
               },
               {
                 icon: 'ribbon-outline',
@@ -324,7 +354,7 @@ export default function ProfileScreen() {
           />
         )}
 
-        <ProfileSection
+        {/* <ProfileSection
           title="Preferências"
           items={[
             {
@@ -346,7 +376,7 @@ export default function ProfileScreen() {
               // onPress: () => router.push('/(app)/profile/change-password'),
             },
           ]}
-        />
+        /> */}
 
         <ProfileSection
           title="Conta"
@@ -361,13 +391,28 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.surface2 },
+  headerShadowWrap: {
+    shadowColor: '#0d1829',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+
+  list: {
+    flex: 1,
+  },
+
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 14,
-    backgroundColor: C.orange,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
   },
   headerTitle: { fontFamily: F.bold, fontSize: 26, color: '#fff' },
+  headerSub: { fontFamily: F.regular, fontSize: 14, color: 'rgba(255,255,255,0.92)', marginTop: 2 },
   scrollContent: { paddingBottom: 32 },
 
   avatarCard: {

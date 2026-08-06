@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
   StyleSheet,
   ActivityIndicator,
   Keyboard,
@@ -45,6 +45,19 @@ export function SmartLocationInput({
   );
   const [isFocused, setIsFocused] = useState(false);
   const [selected, setSelected] = useState(Boolean(city && state));
+
+  useEffect(() => {
+    if (isFocused) return;
+
+    if (city && state) {
+      const stateName = cities.find((c) => c.city === city && c.uf === state)?.stateName ?? state;
+      setQuery(`${city} - ${stateName}`);
+      setSelected(true);
+    } else {
+      setQuery('');
+      setSelected(false);
+    }
+  }, [city, state, cities, isFocused]);
 
   const results = useMemo(() => {
     if (!isFocused) return [];
@@ -126,13 +139,14 @@ export function SmartLocationInput({
               Nenhuma cidade encontrada para "{query}"
             </Text>
           ) : (
-            <FlatList
-              data={results}
-              keyExtractor={(item) => String(item.id)}
-              keyboardShouldPersistTaps="handled"
+            <ScrollView
               style={styles.list}
-              renderItem={({ item }) => (
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
+            >
+              {results.map((item) => (
                 <TouchableOpacity
+                  key={String(item.id)}
                   style={styles.option}
                   activeOpacity={0.7}
                   onPress={() => handlePickOption(item)}
@@ -140,8 +154,8 @@ export function SmartLocationInput({
                   <Text style={styles.optionCity}>{item.city}</Text>
                   <Text style={styles.optionState}> - {item.stateName}</Text>
                 </TouchableOpacity>
-              )}
-            />
+              ))}
+            </ScrollView>
           )}
         </View>
       )}

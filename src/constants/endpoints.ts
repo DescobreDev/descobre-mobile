@@ -8,20 +8,31 @@ export const ENDPOINTS = {
   onboarding: {
     interests: '/onboarding/interests',
     priorities: '/onboarding/priorities',
-
     sectors: (search?: string) =>
       `/onboarding/sectors${search ? `?search=${encodeURIComponent(search)}` : ''}`,
-
     positions: (sectorId: number, search?: string) =>
-      `/onboarding/positions?sectorId=${sectorId}${search ? `&search=${encodeURIComponent(search)}` : ''
-      }`,
-
+      `/onboarding/positions?sectorId=${sectorId}${search ? `&search=${encodeURIComponent(search)}` : ''}`,
     complete: '/onboarding/complete',
   },
 
-  candidates: {
-    me: '/candidates/me',
-    uploadAvatar: '/candidates/avatar',
+  profile: {
+    get: '/candidate/profile',
+    update: '/candidate/profile',
+    updatePreferences: '/candidate/profile/preferences',
+    updateInterests: '/candidate/profile/interests',
+    updatePriorities: '/candidate/profile/priorities',
+  },
+
+  resume: {
+    get: '/candidate/resume',
+    upsertEducation: '/candidate/resume/education',
+    addExperience: '/candidate/resume/experiences',
+    updateExperience: (id: number) => `/candidate/resume/experiences/${id}`,
+    removeExperience: (id: number) => `/candidate/resume/experiences/${id}`,
+    addSkill: '/candidate/resume/skills',
+    removeSkill: (id: number) => `/candidate/resume/skills/${id}`,
+    addLanguage: '/candidate/resume/languages',
+    removeLanguage: (id: number) => `/candidate/resume/languages/${id}`,
   },
 
   jobs: {

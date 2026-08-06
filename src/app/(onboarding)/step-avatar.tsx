@@ -236,7 +236,7 @@ export default function Step6Avatar() {
             <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} style={{ marginLeft: 'auto' }} />
           </TouchableOpacity>
         </View>
-
+{/* 
         <View style={styles.presetsBlock}>
           <Text style={styles.presetsLabel}>Ou escolha um avatar</Text>
           <View style={styles.presetsGrid}>
@@ -262,7 +262,7 @@ export default function Step6Avatar() {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
+        </View> */}
       </ScrollView>
 
       <View style={styles.footer}>

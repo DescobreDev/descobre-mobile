@@ -2,17 +2,17 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
-  TouchableOpacity,
+  // TouchableOpacity, // usado apenas pelo botão de GPS, comentado por enquanto
   StyleSheet,
   SafeAreaView,
-  ActivityIndicator,
+  KeyboardAvoidingView,
   Platform,
+  // ActivityIndicator, // idem
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as Location from 'expo-location';
-import { Ionicons } from '@expo/vector-icons';
-import { getUfFromStateName } from '../../utils/location';
+// import * as Location from 'expo-location'; // GPS desativado temporariamente pro MVP
+// import { Ionicons } from '@expo/vector-icons'; // usado apenas pelo botão de GPS
+// import { getUfFromStateName } from '../../utils/location';
 
 import {
   OnboardingHeader,
@@ -26,7 +26,15 @@ import { SmartLocationInput } from '../../components/onboarding/SmartLocationInp
 
 import { useOnboardingStore } from '../../store/onBoardingStore';
 
-type GpsStatus = 'idle' | 'loading' | 'success' | 'error';
+/**
+ * ⚠️ TEMPORÁRIO (MVP):
+ * O botão "usar minha localização atual" (GPS) foi comentado porque a
+ * captura automática de localização ainda está sendo investigada
+ * (ver step-location.debug.tsx). Toda a lógica de handleUseGps e o tipo
+ * GpsStatus foram removidos por enquanto para simplificar a tela para a
+ * demo. Quando o GPS voltar a funcionar, restaurar a partir do arquivo
+ * anterior (versão com debug) e remontar o botão abaixo do header.
+ */
 
 export default function StepLocation() {
   const router = useRouter();
@@ -38,99 +46,7 @@ export default function StepLocation() {
   const [state, setState] = useState(data.state);
   const [saving, setSaving] = useState(false);
 
-  const [gpsStatus, setGpsStatus] = useState<GpsStatus>('idle');
-
   const canAdvance = city.trim().length > 0 && state.length > 0;
-
-  const handleUseGps = async () => {
-    if (gpsStatus === 'loading') return; // evita clique duplo
-
-    setGpsStatus('loading');
-
-    try {
-      // 1. Verifica se o serviço de localização (GPS) do aparelho está ligado
-      const servicesEnabled = await Location.hasServicesEnabledAsync();
-      if (!servicesEnabled) {
-        alert(
-          'Seu GPS está desligado. Ative os serviços de localização nas configurações do seu aparelho para usar essa opção.'
-        );
-        setGpsStatus('error');
-        return;
-      }
-
-      // 2. Verifica/pede permissão do app
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        alert('Permita o acesso à localização para usar essa opção.');
-        setGpsStatus('error');
-        return;
-      }
-
-      // 3. No Android, força o prompt de "alta precisão" caso não esteja ativo.
-      // Resolve boa parte dos casos de "Current location is unavailable".
-      if (Platform.OS === 'android') {
-        try {
-          await Location.enableNetworkProviderAsync();
-        } catch (e) {
-          // usuário recusou o prompt de alta precisão, ou já está habilitado
-          console.log('enableNetworkProviderAsync:', e);
-        }
-      }
-
-      // 4. Busca a posição, com timeout mais generoso (emulador é mais lento)
-      let location;
-      try {
-        location = await Promise.race([
-          Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Balanced,
-          }),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('timeout')), 20000)
-          ),
-        ]);
-      } catch (err) {
-        // Fallback: tenta usar a última posição conhecida antes de desistir
-        const lastKnown = await Location.getLastKnownPositionAsync();
-        if (lastKnown) {
-          location = lastKnown;
-        } else {
-          throw err;
-        }
-      }
-
-      const address = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
-
-      if (address.length > 0) {
-        const uf = getUfFromStateName(address[0].region ?? '');
-        setCity(address[0].city ?? '');
-        setState(uf);
-        setGpsStatus('success');
-      } else {
-        alert('Não conseguimos identificar sua cidade a partir da sua localização.');
-        setGpsStatus('error');
-      }
-    } catch (error) {
-      console.error(error);
-
-      if ((error as Error)?.message === 'timeout') {
-        alert(
-          'A busca pela localização demorou demais. Tente novamente ou digite manualmente.'
-        );
-      } else {
-        alert('Não foi possível obter sua localização. Verifique se o GPS está ativado.');
-      }
-
-      setGpsStatus('error');
-    } finally {
-      setTimeout(
-        () => setGpsStatus('idle'),
-        gpsStatus === 'success' ? 1500 : 0
-      );
-    }
-  };
 
   const handleNext = async () => {
     setSaving(true);
@@ -149,9 +65,6 @@ export default function StepLocation() {
     router.back();
   };
 
-  const isGpsLoading = gpsStatus === 'loading';
-  const isGpsSuccess = gpsStatus === 'success';
-
   return (
     <SafeAreaView style={styles.safe}>
       <OnboardingHeader
@@ -162,11 +75,11 @@ export default function StepLocation() {
         subtitle="Onde você está, ou pretende estar disponível para trabalhar?"
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={styles.scroll}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        {/* Botão de GPS temporariamente removido do MVP — ver nota no topo do arquivo
         <TouchableOpacity
           onPress={handleUseGps}
           activeOpacity={0.75}
@@ -177,34 +90,12 @@ export default function StepLocation() {
             isGpsSuccess && styles.gpsButtonSuccess,
           ]}
         >
-          {isGpsLoading ? (
-            <ActivityIndicator
-              size="small"
-              color={COLORS.primary ?? COLORS.textMuted}
-            />
-          ) : (
-            <Ionicons
-              name={isGpsSuccess ? 'checkmark-circle' : 'location-outline'}
-              size={18}
-              color={isGpsSuccess ? '#fff' : COLORS.textMuted}
-            />
-          )}
-
-          <Text
-            style={[
-              styles.gpsButtonLabel,
-              (isGpsLoading || isGpsSuccess) && styles.gpsButtonLabelActive,
-            ]}
-          >
-            {isGpsLoading
-              ? 'Buscando localização...'
-              : isGpsSuccess
-              ? 'Localização encontrada!'
-              : 'Usar minha localização atual'}
-          </Text>
+          ...
         </TouchableOpacity>
+        */}
 
-        <View style={styles.section}>
+        <View style={styles.card}>
+
           <Text style={styles.fieldLabel}>Cidade</Text>
           <SmartLocationInput
             city={city}
@@ -215,8 +106,23 @@ export default function StepLocation() {
             }}
             placeholder="Ex: Itapetininga"
           />
+
+          <Text style={styles.cardHint}>
+            Você poderá alterar essa informação depois, nas configurações do
+            seu perfil.
+          </Text>
         </View>
-      </ScrollView>
+
+        {(city.trim().length > 0 || state.length > 0) && (
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryDot} />
+            <Text style={styles.summaryText}>
+              {city.trim().length > 0 ? city : 'Cidade'}
+              {state ? ` · ${state}` : ''}
+            </Text>
+          </View>
+        )}
+      </KeyboardAvoidingView>
 
       <View style={styles.footer}>
         {!canAdvance && (
@@ -243,45 +149,37 @@ const styles = StyleSheet.create({
   },
 
   scroll: {
+    flex: 1,
     paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.lg,
     paddingBottom: SPACING.xl,
   },
 
-  gpsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 99,
-    borderWidth: 1.5,
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: SPACING.lg,
+    borderWidth: 1,
     borderColor: COLORS.border,
-    marginBottom: SPACING.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 1,
   },
 
-  gpsButtonActive: {
-    borderColor: COLORS.primary ?? COLORS.border,
-    backgroundColor: (COLORS.primary ?? '#000000') + '15',
+  cardIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: (COLORS.primary ?? '#208AEF') + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
   },
 
-  gpsButtonSuccess: {
-    borderColor: COLORS.primary ?? '#22c55e',
-    backgroundColor: COLORS.primary ?? '#22c55e',
-  },
-
-  gpsButtonLabel: {
-    fontFamily: FONT.medium,
-    fontSize: 14,
-    color: COLORS.textMuted,
-  },
-
-  gpsButtonLabelActive: {
-    color: '#fff',
-  },
-
-  section: {
-    marginBottom: SPACING.xl,
+  cardIcon: {
+    fontSize: 20,
   },
 
   fieldLabel: {
@@ -291,6 +189,35 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: SPACING.sm,
+  },
+
+  cardHint: {
+    fontFamily: FONT.regular,
+    fontSize: 13,
+    color: COLORS.textMuted,
+    marginTop: SPACING.md,
+    lineHeight: 18,
+  },
+
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: SPACING.lg,
+    paddingHorizontal: 4,
+  },
+
+  summaryDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.primary ?? '#22c55e',
+  },
+
+  summaryText: {
+    fontFamily: FONT.medium,
+    fontSize: 14,
+    color: COLORS.text ?? '#111',
   },
 
   footer: {

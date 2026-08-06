@@ -8,7 +8,12 @@
     "scheme": "descobremobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Usamos sua localização para preencher automaticamente sua cidade e estado.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.descobreapp.descobremobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +23,13 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.descobreapp.descobremobile"
+      "package": "com.descobreapp.descobremobile",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "output": "static",
@@ -38,7 +49,13 @@
       ],
       "expo-secure-store",
       "expo-font",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Usamos sua localização para preencher automaticamente sua cidade e estado."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -71,7 +71,7 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="profile/index"
         options={{
           title: 'Perfil',
           tabBarIcon: ({ focused }) => (
@@ -82,6 +82,13 @@ export default function AppLayout() {
 
       <Tabs.Screen name="job/[id]" options={{ href: null }} />
       <Tabs.Screen name="job/applicationProcess/[id]" options={{ href: null }} />
+
+      <Tabs.Screen name="profile/edit-personal" options={{ href: null }} />
+      <Tabs.Screen name="profile/edit-interests" options={{ href: null }} />
+      <Tabs.Screen name="profile/priorities" options={{ href: null }} />
+      <Tabs.Screen name="profile/experiences" options={{ href: null }} />
+      <Tabs.Screen name="profile/experience-form" options={{ href: null }} />
+      <Tabs.Screen name="profile/education" options={{ href: null }} />
     </Tabs>
   );
 }

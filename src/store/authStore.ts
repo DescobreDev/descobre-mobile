@@ -9,6 +9,8 @@ interface Candidate {
   email: string;
   phone: string | null;
   profileCompleted: boolean;
+  city: string | null;
+  state: string | null;
 }
 
 interface AuthState {
@@ -51,7 +53,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     try {
-      const { data } = await api.get(ENDPOINTS.candidates.me);
+      const { data } = await api.get(ENDPOINTS.profile.get);
       set({ token, candidate: data });
     } catch {
       await SecureStore.deleteItemAsync('candidate_token');

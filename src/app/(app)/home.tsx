@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/authStore';
 import { useJobs } from '../../hooks/useJobs';
 import { AdvancedFiltersModal } from '../../components/filters/AdvancedFiltersModal';
+import { SmartLocationInput } from '../../components/onboarding/SmartLocationInput';
 import { JobListItem, WorkFormat, ContractType } from '../../types/jobs';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

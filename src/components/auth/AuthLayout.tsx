@@ -17,7 +17,7 @@ type AuthLayoutProps = {
   badgeLabel: string;
   title: string;
   subtitle: string;
-  children: ReactNode; 
+  children: ReactNode;
   footer?: ReactNode;
 };
 
@@ -43,14 +43,15 @@ export function AuthLayout({
 
       <KeyboardAvoidingView
         style={styles.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
           automaticallyAdjustKeyboardInsets
+          nestedScrollEnabled
         >
           <View style={styles.logoCard}>
             <Image source={logoSource} style={styles.logo} resizeMode="contain" />
@@ -77,15 +78,10 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface },
 
   header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
     height: layout.headerHeight,
     borderBottomLeftRadius: layout.headerRadius,
     borderBottomRightRadius: layout.headerRadius,
     overflow: 'hidden',
-    zIndex: 0,
   },
   headerBlobLarge: {
     position: 'absolute',
@@ -112,11 +108,8 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: spacing.xl,
-    // Empurra o conteúdo pra baixo do header, deixando só o logoCard invadi-lo
-    paddingTop: layout.headerHeight - layout.logoCardOverlap,
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
 
   logoCard: {
@@ -125,12 +118,13 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     paddingHorizontal: 22,
     paddingVertical: 18,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
+    marginTop: spacing.xl,
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.12,
     shadowRadius: 20,
-    elevation: 8,
+    elevation: 10,
   },
   logo: { width: 190, height: 78 },
 
