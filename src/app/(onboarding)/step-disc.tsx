@@ -178,7 +178,7 @@ export default function Step1Disc() {
   };
 
   const handleAdvance = () => {
-    
+
     setDiscCompleted(true);
     nextStep();
     router.push('/(onboarding)/step-interests');
@@ -453,16 +453,21 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: COLORS.text,
     textAlign: 'center',
+    lineHeight: 34,
     marginBottom: SPACING.md,
+    width: '100%',
+    paddingHorizontal: SPACING.md,
   },
+
   discIntroSub: {
     fontFamily: FONT.regular,
     fontSize: 18,
     color: COLORS.text2,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 25,
     marginBottom: SPACING.xl,
-    paddingHorizontal: SPACING.sm,
+    width: '100%',
+    paddingHorizontal: SPACING.md,
   },
   discIntroBold: {
     fontFamily: FONT.semiBold,

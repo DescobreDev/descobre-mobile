@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
@@ -18,6 +17,7 @@ import {
 } from '../../components/onboarding/OnboardingHeader';
 import { PrimaryButton } from '../../components/onboarding/PrimaryButton';
 import { useOnboardingStore } from '../../store/onBoardingStore';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 const EDUCATION_LEVELS = [
   { value: 'NAO_ALFABETIZADO', label: 'Não\nAlfabetizado', icon: 'reader-outline' as const },
@@ -98,10 +98,11 @@ export default function Step3Education() {
         subtitle="Qual é o seu nível de formação mais alto?"
       />
 
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        bottomOffset={20}
       >
 
         <View style={styles.levelsGrid}>
@@ -186,7 +187,7 @@ export default function Step3Education() {
           </View>
         )}
 
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View style={styles.footer}>
         {!canAdvance && (
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  institutionBlock: { gap: SPACING.sm},
+  institutionBlock: { gap: SPACING.sm },
   institutionLabel: {
     fontFamily: FONT.semiBold,
     fontSize: 18,

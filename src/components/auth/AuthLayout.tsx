@@ -4,12 +4,11 @@ import {
   Text,
   Image,
   ImageSourcePropType,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { colors, typography, fontSize, radius, spacing, layout } from '../../theme';
 
 type AuthLayoutProps = {
@@ -29,46 +28,40 @@ export function AuthLayout({
   children,
   footer,
 }: AuthLayoutProps) {
+  const { height: screenHeight } = useWindowDimensions();
+  const headerHeight = Math.min(Math.max(screenHeight * 0.28, 220), 320);
+
   return (
     <View style={styles.root}>
       <LinearGradient
         colors={[colors.orange, colors.orangeDark]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.header}
+        style={[styles.header, { height: headerHeight }]}
       >
-        <View style={styles.headerBlobLarge} />
-        <View style={styles.headerBlobSmall} />
-
         <Image source={logoSource} style={styles.logo} resizeMode="contain" />
-
       </LinearGradient>
 
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         style={styles.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        showsVerticalScrollIndicator={false}
+        bottomOffset={40}
       >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-          showsVerticalScrollIndicator={false}
-          automaticallyAdjustKeyboardInsets
-          nestedScrollEnabled
-        >
-          <View style={styles.badge}>
-            <View style={styles.badgeDot} />
-            <Text style={styles.badgeText}>{badgeLabel}</Text>
-          </View>
+        <View style={styles.badge}>
+          <View style={styles.badgeDot} />
+          <Text style={styles.badgeText}>{badgeLabel}</Text>
+        </View>
 
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.subtitle}>{subtitle}</Text>
 
-          <View style={styles.card}>{children}</View>
+        <View style={styles.card}>{children}</View>
 
-          {footer ? <View style={styles.footer}>{footer}</View> : null}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {footer ? <View style={styles.footer}>{footer}</View> : null}
+      </KeyboardAwareScrollView>
     </View>
   );
 }
@@ -77,30 +70,11 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface },
 
   header: {
-    height: layout.headerHeight,
     borderBottomLeftRadius: layout.headerRadius,
     borderBottomRightRadius: layout.headerRadius,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  headerBlobLarge: {
-    position: 'absolute',
-    width: 220,
-    height: 240,
-    borderRadius: 110,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    top: -90,
-    right: -60,
-  },
-  headerBlobSmall: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.10)',
-    bottom: -50,
-    left: -30,
   },
 
   kav: {

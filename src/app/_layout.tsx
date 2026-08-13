@@ -7,6 +7,7 @@ import {
   Poppins_600SemiBold,
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { useAuthStore } from '../store/authStore';
 
@@ -53,5 +54,9 @@ export default function RootLayout() {
 
   if (!fontsLoaded || token === null) return null;
 
-  return <Slot />;
+  return (
+    <KeyboardProvider>
+      <Slot />
+    </KeyboardProvider>
+  );
 }

@@ -1,3 +1,7 @@
+import { Dimensions } from 'react-native';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 export const radius = {
   sm: 12,
   md: 14,
@@ -14,7 +18,7 @@ export const spacing = {
 } as const;
 
 export const layout = {
-  headerHeight: 250,
+  headerHeight: Math.min(Math.max(SCREEN_HEIGHT * 0.28, 220), 320),
   headerRadius: 32,
   logoCardOverlap: 55,
 } as const;

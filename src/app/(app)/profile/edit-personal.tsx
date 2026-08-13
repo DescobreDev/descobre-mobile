@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,6 @@ import {
   TouchableOpacity,
   Switch,
   ActivityIndicator,
-  Modal,
-  FlatList,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -21,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/services/api';
 import { ENDPOINTS } from '../../../constants/endpoints';
 import { SmartLocationInput } from '../../../components/onboarding/SmartLocationInput';
+import { SectorPositionPicker, PickerOption } from '../../../components/shared/SectorPositionPicker';
 
 const C = {
   orange: '#f97316',
@@ -73,8 +72,6 @@ const SALARY_RANGES: SalaryRange[] = [
   { id: 'r5', label: 'Acima de R$ 8.000', min: '8000', max: null },
 ];
 
-type SelectItem = { id: number; name: string };
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={styles.field}>
@@ -104,75 +101,6 @@ function Chip({
   );
 }
 
-function PickerModal({
-  visible,
-  title,
-  items,
-  loading,
-  onSearch,
-  onSelect,
-  onClose,
-}: {
-  visible: boolean;
-  title: string;
-  items: SelectItem[];
-  loading: boolean;
-  onSearch: (text: string) => void;
-  onSelect: (item: SelectItem) => void;
-  onClose: () => void;
-}) {
-  const [query, setQuery] = useState('');
-
-  return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.modalSafe}>
-        <View style={styles.modalHeader}>
-          <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons name="close" size={24} color={C.text} />
-          </TouchableOpacity>
-          <Text style={styles.modalTitle}>{title}</Text>
-          <View style={{ width: 24 }} />
-        </View>
-
-        <View style={styles.searchBox}>
-          <Ionicons name="search" size={18} color={C.textMuted} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar..."
-            placeholderTextColor={C.textMuted}
-            value={query}
-            onChangeText={(t) => {
-              setQuery(t);
-              onSearch(t);
-            }}
-          />
-        </View>
-
-        {loading ? (
-          <ActivityIndicator style={{ marginTop: 24 }} color={C.orange} />
-        ) : (
-          <FlatList
-            data={items}
-            keyExtractor={(item) => String(item.id)}
-            contentContainerStyle={{ paddingBottom: 24 }}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.modalItem}
-                onPress={() => onSelect(item)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalItemText}>{item.name}</Text>
-                <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
-              </TouchableOpacity>
-            )}
-            ListEmptyComponent={<Text style={styles.modalEmpty}>Nenhum resultado encontrado.</Text>}
-          />
-        )}
-      </View>
-    </Modal>
-  );
-}
-
 export default function EditPersonalScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -188,19 +116,12 @@ export default function EditPersonalScreen() {
   const [acceptsTravel, setAcceptsTravel] = useState(false);
 
   // Preferências de vaga
-  const [sector, setSector] = useState<SelectItem | null>(null);
-  const [position, setPosition] = useState<SelectItem | null>(null);
+  const [sector, setSector] = useState<PickerOption | null>(null);
+  const [position, setPosition] = useState<PickerOption | null>(null);
   const [selectedSalaryRangeId, setSelectedSalaryRangeId] = useState<string | null>(null);
   const [salaryNegotiable, setSalaryNegotiable] = useState(false);
   const [contractTypes, setContractTypes] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState<string | null>(null);
-
-  // Picker de setor/cargo
-  const [sectorModalVisible, setSectorModalVisible] = useState(false);
-  const [positionModalVisible, setPositionModalVisible] = useState(false);
-  const [sectorOptions, setSectorOptions] = useState<SelectItem[]>([]);
-  const [positionOptions, setPositionOptions] = useState<SelectItem[]>([]);
-  const [pickerLoading, setPickerLoading] = useState(false);
 
   const firstName = name ? name.split(' ')[0] : 'C';
 
@@ -234,44 +155,6 @@ export default function EditPersonalScreen() {
       }
     })();
   }, []);
-
-  const searchSectors = useCallback(async (text: string) => {
-    setPickerLoading(true);
-    try {
-      const { data } = await api.get(ENDPOINTS.onboarding.sectors(text));
-      setSectorOptions(data);
-    } finally {
-      setPickerLoading(false);
-    }
-  }, []);
-
-  const searchPositions = useCallback(
-    async (text: string) => {
-      if (!sector) return;
-      setPickerLoading(true);
-      try {
-        const { data } = await api.get(ENDPOINTS.onboarding.positions(sector.id, text));
-        setPositionOptions(data);
-      } finally {
-        setPickerLoading(false);
-      }
-    },
-    [sector],
-  );
-
-  const openSectorModal = () => {
-    setSectorModalVisible(true);
-    searchSectors('');
-  };
-
-  const openPositionModal = () => {
-    if (!sector) {
-      Alert.alert('Selecione o setor primeiro', 'Escolha uma área de atuação antes de definir o cargo.');
-      return;
-    }
-    setPositionModalVisible(true);
-    searchPositions('');
-  };
 
   const toggleContractType = (value: string) => {
     setContractTypes((prev) =>
@@ -407,23 +290,12 @@ export default function EditPersonalScreen() {
           {/* Preferências de vaga */}
           <Text style={styles.sectionTitle}>Vaga desejada</Text>
           <View style={styles.card}>
-            <Field label="Área de atuação">
-              <TouchableOpacity style={styles.selectInput} onPress={openSectorModal} activeOpacity={0.7}>
-                <Text style={[styles.selectInputText, !sector && styles.selectInputPlaceholder]}>
-                  {sector?.name ?? 'Selecionar setor'}
-                </Text>
-                <Ionicons name="chevron-down" size={18} color={C.textMuted} />
-              </TouchableOpacity>
-            </Field>
-
-            <Field label="Cargo desejado">
-              <TouchableOpacity style={styles.selectInput} onPress={openPositionModal} activeOpacity={0.7}>
-                <Text style={[styles.selectInputText, !position && styles.selectInputPlaceholder]}>
-                  {position?.name ?? 'Selecionar cargo'}
-                </Text>
-                <Ionicons name="chevron-down" size={18} color={C.textMuted} />
-              </TouchableOpacity>
-            </Field>
+            <SectorPositionPicker
+              sector={sector}
+              position={position}
+              onChangeSector={setSector}
+              onChangePosition={setPosition}
+            />
 
             <Field label="Faixa salarial desejada">
               <View style={styles.chipsWrap}>
@@ -488,33 +360,6 @@ export default function EditPersonalScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-
-      <PickerModal
-        visible={sectorModalVisible}
-        title="Selecionar setor"
-        items={sectorOptions}
-        loading={pickerLoading}
-        onSearch={searchSectors}
-        onSelect={(item) => {
-          setSector(item);
-          setPosition(null);
-          setSectorModalVisible(false);
-        }}
-        onClose={() => setSectorModalVisible(false)}
-      />
-
-      <PickerModal
-        visible={positionModalVisible}
-        title="Selecionar cargo"
-        items={positionOptions}
-        loading={pickerLoading}
-        onSearch={searchPositions}
-        onSelect={(item) => {
-          setPosition(item);
-          setPositionModalVisible(false);
-        }}
-        onClose={() => setPositionModalVisible(false)}
-      />
     </View>
   );
 }
@@ -586,19 +431,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: C.text,
   },
-  selectInput: {
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: C.border,
-    backgroundColor: C.surface2,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  selectInputText: { fontFamily: F.medium, fontSize: 15, color: C.text },
-  selectInputPlaceholder: { color: C.textMuted, fontFamily: F.regular },
 
   switchRow: {
     flexDirection: 'row',
@@ -639,40 +471,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveBtnText: { fontFamily: F.semiBold, fontSize: 16, color: '#fff' },
-
-  modalSafe: { flex: 1, backgroundColor: C.surface2, paddingTop: 50 },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-  },
-  modalTitle: { fontFamily: F.semiBold, fontSize: 17, color: C.text },
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    paddingHorizontal: 14,
-    height: 46,
-    borderRadius: 12,
-    backgroundColor: C.surface,
-    borderWidth: 1.5,
-    borderColor: C.border,
-  },
-  searchInput: { flex: 1, fontFamily: F.regular, fontSize: 15, color: C.text },
-  modalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-    backgroundColor: C.surface,
-  },
-  modalItemText: { fontFamily: F.medium, fontSize: 15, color: C.text },
-  modalEmpty: { textAlign: 'center', marginTop: 40, fontFamily: F.regular, color: C.textMuted },
 });

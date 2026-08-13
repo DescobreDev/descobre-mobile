@@ -1,7 +1,16 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView, TextInput,
+  View,
+  Text,
+  ScrollView,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  TextInput,
+  Modal,
+  Pressable,
+  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -45,47 +54,119 @@ function LevelChip({ label, selected, onPress }: { label: string; selected: bool
 }
 
 function Dropdown({
-  value, placeholder, options, onSelect, zIndex = 10,
+  value,
+  placeholder,
+  options,
+  onSelect,
 }: {
-  value: string; placeholder: string;
+  value: string;
+  placeholder: string;
   options: readonly { value: string; label: string }[];
   onSelect: (v: string) => void;
-  zIndex?: number;
 }) {
   const [open, setOpen] = useState(false);
+  const [layout, setLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const triggerRef = useRef<View>(null);
   const selected = options.find((o) => o.value === value);
 
+  const openDropdown = () => {
+    triggerRef.current?.measureInWindow((x, y, width, height) => {
+      setLayout({ x, y, width, height });
+      setOpen(true);
+    });
+  };
+
+  const screenHeight = Dimensions.get('window').height;
+  const listMaxHeight = 220;
+  const spaceBelow = screenHeight - (layout.y + layout.height);
+  const opensUpward = spaceBelow < listMaxHeight && layout.y > listMaxHeight;
+
   return (
-    <View style={[styles.dropdownWrapper, { zIndex }]}>
+    <View style={styles.dropdownWrapper}>
       <TouchableOpacity
+        ref={triggerRef}
         style={[styles.dropdownTrigger, open && styles.dropdownTriggerOpen]}
-        onPress={() => setOpen(!open)}
+        onPress={openDropdown}
         activeOpacity={0.8}
       >
-        <Text style={[styles.dropdownValue, !selected && styles.dropdownPlaceholder]}>
+        <Text
+          style={[
+            styles.dropdownValue,
+            !selected && styles.dropdownPlaceholder,
+          ]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {selected?.label ?? placeholder}
         </Text>
-        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={20} color={COLORS.text2} />
+
+        <Ionicons
+          name={open ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          color={COLORS.text2}
+        />
       </TouchableOpacity>
 
-      {open && (
-        <View style={[styles.dropdownList, { zIndex: zIndex + 10 }]}>
-          <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} style={{ maxHeight: 220 }}>
-            {options.map((o) => (
-              <TouchableOpacity
-                key={o.value}
-                style={[styles.dropdownItem, value === o.value && styles.dropdownItemSelected]}
-                onPress={() => { onSelect(o.value); setOpen(false); }}
-              >
-                <Text style={[styles.dropdownItemText, value === o.value && styles.dropdownItemTextSelected]}>
-                  {o.label}
-                </Text>
-                {value === o.value && <Ionicons name="checkmark" size={18} color={COLORS.orange} />}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={() => setOpen(false)}>
+          <View
+            style={[
+              styles.dropdownList,
+              {
+                left: layout.x,
+                width: layout.width,
+                maxHeight: listMaxHeight,
+                ...(opensUpward
+                  ? { top: layout.y - listMaxHeight - 4 }
+                  : { top: layout.y + layout.height + 4 }),
+              },
+            ]}
+          >
+            <FlatList
+              data={options}
+              keyExtractor={(o) => o.value}
+              showsVerticalScrollIndicator
+              renderItem={({ item: o }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.dropdownItem,
+                    value === o.value && styles.dropdownItemSelected,
+                  ]}
+                  onPress={() => {
+                    onSelect(o.value);
+                    setOpen(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.dropdownItemText,
+                      value === o.value &&
+                      styles.dropdownItemTextSelected,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {o.label}
+                  </Text>
+
+                  {value === o.value && (
+                    <Ionicons
+                      name="checkmark"
+                      size={18}
+                      color={COLORS.orange}
+                    />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -96,31 +177,41 @@ interface LangRowProps {
   usedLanguages: string[];
   onChange: (i: number, lang: OnboardingLanguage) => void;
   onRemove: (i: number) => void;
-  zIndex: number;
 }
 
-function LanguageRow({ lang, index, usedLanguages, onChange, onRemove, zIndex }: LangRowProps) {
+function LanguageRow({ lang, index, usedLanguages, onChange, onRemove }: LangRowProps) {
   const availableLangs = COMMON_LANGUAGES.filter(
     (l) => l === lang.language || !usedLanguages.includes(l)
   );
 
   return (
-    <View style={[styles.langRow, { zIndex }]}>
+    <View style={styles.langRow}>
       <View style={styles.langDropdowns}>
-        <Dropdown
-          value={lang.language}
-          placeholder="Selecione."
-          options={availableLangs.map((l) => ({ value: l, label: l }))}
-          onSelect={(v) => onChange(index, { ...lang, language: v })}
-          zIndex={zIndex + 10}
-        />
-        <Dropdown
-          value={lang.level}
-          placeholder="Nível"
-          options={LANGUAGE_LEVELS}
-          onSelect={(v) => onChange(index, { ...lang, level: v as LangLevel })}
-          zIndex={zIndex}
-        />
+        <View style={{ flex: 1.1, minWidth: 0 }}>
+          <Dropdown
+            value={lang.language}
+            placeholder="Selecione."
+            options={availableLangs.map((l) => ({
+              value: l,
+              label: l,
+            }))}
+            onSelect={(v) => onChange(index, { ...lang, language: v })}
+          />
+        </View>
+
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Dropdown
+            value={lang.level}
+            placeholder="Nível"
+            options={LANGUAGE_LEVELS}
+            onSelect={(v) =>
+              onChange(index, {
+                ...lang,
+                level: v as LangLevel,
+              })
+            }
+          />
+        </View>
       </View>
       <TouchableOpacity onPress={() => onRemove(index)} style={styles.removeBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
         <Ionicons name="trash-outline" size={20} color={COLORS.textMuted} />
@@ -200,7 +291,6 @@ export default function Step5Skills() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        nestedScrollEnabled
       >
 
         <View style={styles.section}>
@@ -272,7 +362,6 @@ export default function Step5Skills() {
               usedLanguages={usedLanguages}
               onChange={updateLanguage}
               onRemove={removeLanguage}
-              zIndex={100 - i * 10}
             />
           ))}
 
@@ -359,22 +448,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  dropdownWrapper: { flex: 1 },
+  dropdownWrapper: {
+    flex: 1,
+    minWidth: 0,
+  },
   dropdownTrigger: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 14, backgroundColor: COLORS.surface,
   },
   dropdownTriggerOpen: { borderColor: COLORS.orange },
-  dropdownValue: { fontFamily: FONT.regular, fontSize: 16, color: COLORS.text, flex: 1, marginRight: 4 },
+  dropdownValue: {
+    fontFamily: FONT.regular,
+    fontSize: 16,
+    color: COLORS.text,
+    flex: 1,
+    minWidth: 0,
+    marginRight: 4,
+  },
+
   dropdownPlaceholder: { color: COLORS.textMuted },
   dropdownList: {
-    position: 'absolute', top: 52, left: 0, right: 0,
-    borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12,
+    position: 'absolute',
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    borderRadius: 12,
     backgroundColor: COLORS.surface,
-    shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
     elevation: 8,
+    overflow: 'hidden',
   },
+
   dropdownItem: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 14, paddingVertical: 14,

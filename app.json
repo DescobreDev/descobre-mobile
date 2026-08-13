@@ -1,20 +1,21 @@
 {
   "expo": {
-    "name": "descobre-mobile",
+    "name": "D-ESCOBRE",
     "slug": "descobre-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "descobremobile",
     "userInterfaceStyle": "automatic",
+
     "ios": {
-      "icon": "./assets/expo.icon",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Usamos sua localização para preencher automaticamente sua cidade e estado.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.descobreapp.descobremobile"
     },
+
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -31,10 +32,12 @@
         "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
+
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+
     "plugins": [
       "expo-router",
       [
@@ -57,10 +60,12 @@
         }
       ]
     ],
+
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
+
     "extra": {
       "router": {},
       "eas": {
