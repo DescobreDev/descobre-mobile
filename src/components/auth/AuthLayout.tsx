@@ -39,6 +39,9 @@ export function AuthLayout({
       >
         <View style={styles.headerBlobLarge} />
         <View style={styles.headerBlobSmall} />
+
+        <Image source={logoSource} style={styles.logo} resizeMode="contain" />
+
       </LinearGradient>
 
       <KeyboardAvoidingView
@@ -53,10 +56,6 @@ export function AuthLayout({
           automaticallyAdjustKeyboardInsets
           nestedScrollEnabled
         >
-          <View style={styles.logoCard}>
-            <Image source={logoSource} style={styles.logo} resizeMode="contain" />
-          </View>
-
           <View style={styles.badge}>
             <View style={styles.badgeDot} />
             <Text style={styles.badgeText}>{badgeLabel}</Text>
@@ -82,11 +81,13 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: layout.headerRadius,
     borderBottomRightRadius: layout.headerRadius,
     overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerBlobLarge: {
     position: 'absolute',
     width: 220,
-    height: 220,
+    height: 240,
     borderRadius: 110,
     backgroundColor: 'rgba(255,255,255,0.08)',
     top: -90,
@@ -109,24 +110,12 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
     paddingBottom: 120,
+    justifyContent: 'center',
   },
 
-  logoCard: {
-    alignSelf: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 28,
-    paddingHorizontal: 22,
-    paddingVertical: 18,
-    marginBottom: spacing.xl,
-    marginTop: spacing.xl,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  logo: { width: 190, height: 78 },
+  logo: { width: 250, height: 200 },
 
   badge: {
     flexDirection: 'row',

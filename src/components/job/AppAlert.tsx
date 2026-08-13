@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors as C, fonts as F, radii as R } from './theme.tsx';
+import { colors as C, fonts as F, radii as R } from '../../constants/jobs/theme';
 
 export type AlertButtonStyle = 'default' | 'cancel' | 'destructive';
 

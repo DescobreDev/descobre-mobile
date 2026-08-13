@@ -14,7 +14,7 @@ export const spacing = {
 } as const;
 
 export const layout = {
-  headerHeight: 150,
+  headerHeight: 250,
   headerRadius: 32,
   logoCardOverlap: 55,
 } as const;

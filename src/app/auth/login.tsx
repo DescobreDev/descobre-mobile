@@ -9,7 +9,7 @@ import { AuthTextInput } from '../../components/auth/AuthTextInput';
 import { AuthButton } from '../../components/auth/AuthButton';
 import { AuthFooterLink } from '../../components/auth/AuthFooterLink';
 
-const LOGO_SOURCE = require('../../../assets/images/LOGO-DESCOBRE.png');
+const LOGO_SOURCE = require('../../../assets/images/LOGO-DESCOBRE-BRANCA.png');
 
 export default function LoginScreen() {
   const router = useRouter();

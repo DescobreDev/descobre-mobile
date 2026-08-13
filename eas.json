@@ -15,7 +15,11 @@
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "distribution": "store",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://descobre-backend.onrender.com"
+      }
     }
   },
   "submit": {
