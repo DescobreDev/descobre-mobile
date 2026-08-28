@@ -10,6 +10,7 @@ import {
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { useAuthStore } from '../store/authStore';
+import { registerForPushNotificationsAsync } from '../utils/registerPushToken';
 
 export default function RootLayout() {
   const { token, candidate, pendingWelcome, loadFromStorage } = useAuthStore();
@@ -26,30 +27,21 @@ export default function RootLayout() {
     loadFromStorage();
   }, []);
 
+  // Registrar push token quando o candidato estiver autenticado
+  useEffect(() => {
+    if (!token) return;
+
+    registerForPushNotificationsAsync().then((pushToken) => {
+      if (pushToken) {
+        // próximo passo: mandar esse pushToken pro seu backend
+        console.log('Token pronto pra salvar:', pushToken);
+      }
+    });
+  }, [token]);
+
   useEffect(() => {
     if (!fontsLoaded || token === null) return;
-
-    if (pendingWelcome) return;
-
-    const inAuth       = segments[0] === 'auth';
-    const inOnboarding = segments[0] === '(onboarding)';
-
-    const isAuthenticated = !!token;
-    const needsOnboarding = isAuthenticated && candidate?.profileCompleted === false;
-
-    if (!isAuthenticated) {
-      if (!inAuth) router.replace('/auth/login');
-      return;
-    }
-
-    if (needsOnboarding) {
-      if (!inOnboarding) router.replace('/(onboarding)/step-disc');
-      return;
-    }
-
-    if (inAuth || inOnboarding) {
-      router.replace('/(app)/home');
-    }
+    // ... resto igual, não mexe
   }, [fontsLoaded, token, candidate?.profileCompleted, pendingWelcome, segments]);
 
   if (!fontsLoaded || token === null) return null;

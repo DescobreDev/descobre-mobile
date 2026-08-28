@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "673057027553",
+    "project_id": "d-escobre-2cccf",
+    "storage_bucket": "d-escobre-2cccf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673057027553:android:0e9e8eee3c42ec486bcea0",
+        "android_client_info": {
+          "package_name": "com.descobreapp.descobremobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBt-zOc3o83hXcudU4jqvKLWFz7zJbRR58"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
