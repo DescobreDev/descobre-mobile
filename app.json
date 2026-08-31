@@ -57,7 +57,8 @@
           "locationWhenInUsePermission": "Usamos sua localização para preencher automaticamente sua cidade e estado."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
