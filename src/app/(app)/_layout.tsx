@@ -1,7 +1,10 @@
 import { Tabs } from 'expo-router';
-import { Platform, View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as SystemUI from 'expo-system-ui';
+
+SystemUI.setBackgroundColorAsync('#f4f6f9');
 
 const COLORS = {
   orange: '#f97316',
@@ -30,6 +33,14 @@ function TabIcon({ name, focused }: TabIconProps) {
   );
 }
 
+function TabBarBackground() {
+  return (
+    <View style={styles.shadowWrap}>
+      <View style={styles.roundedBg} />
+    </View>
+  );
+}
+
 export default function AppLayout() {
   const insets = useSafeAreaInsets();
   const barBaseHeight = 58;
@@ -48,6 +59,7 @@ export default function AppLayout() {
             paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
           },
         ],
+        tabBarBackground: () => <TabBarBackground />,
         tabBarLabelStyle: styles.tabLabel,
         tabBarItemStyle: styles.tabItem,
       }}
@@ -95,18 +107,34 @@ export default function AppLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: COLORS.surface,
-    borderTopColor: COLORS.border,
-    borderTopWidth: 1,
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-    paddingTop: 10,
+    backgroundColor: 'transparent',
+    borderTopWidth: 0,
     elevation: 0,
+    shadowOpacity: 0,
+    paddingTop: 10,
+  },
+
+  shadowWrap: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.surface,
+    elevation: 12,
     shadowColor: '#0d1829',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
   },
+
+
+  roundedBg: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderTopWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
+  },
+
   tabItem: {
     paddingTop: 2,
   },
